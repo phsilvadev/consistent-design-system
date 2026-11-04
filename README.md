@@ -27,7 +27,7 @@ A raiz abre `/empresa-exemplo`. Qualquer identificador de empresa pode ser usado
 
 Todas as rotas estão em `src/app/[tenant]/(workspace)`. O identificador serve apenas para navegar e apresentar o nome da empresa. Os dados das telas são fixos e iguais em todos os ambientes; não há isolamento de dados reais nesta versão.
 
-Login e cadastro são telas de interface: seus formulários apenas abrem o painel, sem verificar ou armazenar credenciais e sem criar contas. Conversas usam estado local para visualizar mensagens e interações; ao recarregar a página, os dados iniciais voltam. As preferências de aparência ficam no navegador.
+Login e cadastro são telas de interface: seus formulários apenas abrem o painel, sem verificar ou armazenar credenciais e sem criar contas. Conversas usam estado local para visualizar mensagens e interações; ao recarregar a página, os dados iniciais voltam. As preferências de aparência ficam no navegador. Em Configurações → Aparência, os cards Normal, Clean e Personalizado ficam lado a lado. Personalizado oferece cores da página, cards, cabeçalho, textos, menu, botões, bordas e gráficos; ajuste automático das cores dos textos; fonte, tamanho e peso dos títulos; espaçamento; largura do menu; cabeçalho fixo; cantos, bordas e sombras; animações; combinações prontas; importação/exportação de temas e restauração do padrão. Os temas também são aplicados aos diálogos e chats laterais; o conteúdo e a organização do dashboard permanecem no layout original.
 
 ## Funil de atendimento
 

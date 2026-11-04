@@ -1,9 +1,11 @@
 "use client";
 
-import { BrandLogo } from "@/components/brand-logo";
+import { CustomAppearanceEditor } from "@/components/appearance/custom-appearance-editor";
+import { type Appearance } from "@/hooks/use-interface-appearance";
+import { BrandLogo, BrandMark } from "@/components/brand-logo";
 import Link from "next/link";
-import { useTenant } from "@/lib/tenant/provider";
-import { useEffect, useState, type ReactNode } from "react";
+import { useTenant, useTenantAppearance } from "@/lib/tenant/provider";
+import { useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
   Plus,
@@ -52,11 +54,21 @@ const menu = [
 ] as const;
 
 const statuses = [
-  { name: "Em atendimento", value: 12, percent: "10%", color: "#3b82f6" },
-  { name: "Aguardando cliente", value: 18, percent: "14%", color: "#f59e0b" },
-  { name: "Em orçamento", value: 24, percent: "19%", color: "#8b5cf6" },
-  { name: "Convertido em venda", value: 28, percent: "22%", color: "#16a34a" },
-  { name: "Encerrado", value: 44, percent: "35%", color: "#94a3b8" },
+  { name: "Em atendimento", value: 12, percent: "10%", color: "var(--custom-chart-1, #3b82f6)" },
+  {
+    name: "Aguardando cliente",
+    value: 18,
+    percent: "14%",
+    color: "var(--custom-chart-2, #f59e0b)",
+  },
+  { name: "Em orçamento", value: 24, percent: "19%", color: "var(--custom-chart-3, #8b5cf6)" },
+  {
+    name: "Convertido em venda",
+    value: 28,
+    percent: "22%",
+    color: "var(--custom-chart-4, #16a34a)",
+  },
+  { name: "Encerrado", value: 44, percent: "35%", color: "var(--custom-chart-5, #94a3b8)" },
 ];
 const conversion = [
   { date: "27/out", value: 16.8 },
@@ -116,55 +128,44 @@ export function Dashboard({
   activePage?: string;
 }) {
   const { tenant, user, href } = useTenant();
-  const appearanceKey = `atendehub:${tenant.id}:${user.id}:appearance`;
   const [open, setOpen] = useState(true);
-  const [clean, setClean] = useState(false);
-
-  useEffect(() => {
-    try {
-      setClean(localStorage.getItem(appearanceKey) === "clean");
-    } catch {
-      // Keep the default appearance when browser storage is unavailable.
-    }
-  }, [appearanceKey]);
-
-  function changeAppearance(checked: boolean) {
-    setClean(checked);
-    try {
-      localStorage.setItem(appearanceKey, checked ? "clean" : "normal");
-    } catch {
-      // The appearance can still be changed for the current session.
-    }
-  }
+  const {
+    appearance,
+    custom,
+    changeAppearance,
+    changeCustom,
+    resetCustom,
+    storageState,
+    style,
+    logoWhite,
+  } = useTenantAppearance();
+  const clean = appearance === "clean";
 
   return (
     <div
-      data-appearance={clean ? "clean" : "normal"}
+      data-appearance={appearance}
+      style={style}
       className="flex min-h-screen bg-background font-sans text-foreground"
     >
       <aside
+        data-app-sidebar
+        data-expanded={open}
         className={`${open ? "w-64" : "w-16"} sticky top-0 hidden h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all md:flex`}
       >
-        <div className="flex h-16 items-center gap-2 px-4">
-          {open ? (
-            <a
-              href={href()}
-              className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-              aria-label="AtendeHUB — início"
-            >
-              <BrandLogo white={!clean} />
-            </a>
-          ) : (
-            <MessageCircle
-              className="h-7 w-7 shrink-0 text-sidebar-primary"
-              aria-label="AtendeHUB"
-            />
-          )}
+        <div className={`flex h-16 items-center ${open ? "px-4" : "justify-center"}`}>
+          <Link
+            href={href()}
+            className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            aria-label="AtendeHUB — início"
+          >
+            {open ? <BrandLogo white={logoWhite} /> : <BrandMark white={logoWhite} />}
+          </Link>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
           {menu.map(([Icon, label], i) => (
             <Link
               key={label}
+              data-sidebar-item
               href={href(
                 label === "Integrações"
                   ? "/integracoes"
@@ -188,7 +189,7 @@ export function Dashboard({
                   : undefined
               }
               title={label}
-              className={`flex w-full items-center gap-3 rounded-full text-left px-3 py-2 text-sm font-semibold transition-colors ${(activePage ? label === activePage : settings ? label === "Configurações" : i === 0) ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}
+              className={`flex items-center text-sm font-semibold transition-colors ${open ? "w-full gap-3 rounded-full px-3 py-2 text-left" : "mx-auto h-10 w-10 justify-center rounded-xl p-0"} ${(activePage ? label === activePage : settings ? label === "Configurações" : i === 0) ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {open && label}
@@ -198,7 +199,10 @@ export function Dashboard({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-card px-4 md:px-8">
+        <header
+          data-app-header
+          className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-card px-4 md:px-8"
+        >
           <button
             onClick={() => setOpen(!open)}
             aria-label="Expandir ou recolher menu"
@@ -263,7 +267,7 @@ export function Dashboard({
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="appearance" className="mt-0 pt-8">
-                <section className="max-w-[640px] space-y-6">
+                <section className="max-w-[960px] space-y-6">
                   <div>
                     <h2 className="text-base font-semibold">Estilo da interface</h2>
                     <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -271,71 +275,111 @@ export function Dashboard({
                     </p>
                   </div>
                   <div className="overflow-hidden rounded-2xl border bg-card">
-                    <div className="grid gap-5 p-5 sm:grid-cols-2 sm:p-6">
-                      {[false, true].map((isClean) => (
-                        <button
-                          key={String(isClean)}
-                          type="button"
-                          aria-pressed={clean === isClean}
-                          onClick={() => changeAppearance(isClean)}
-                          className={`group rounded-xl border-2 p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${clean === isClean ? "border-primary" : "border-border hover:border-muted-foreground/40"}`}
-                        >
-                          <div
-                            aria-hidden="true"
-                            className="flex h-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
+                    <div className="grid gap-5 p-5 sm:grid-cols-3 sm:p-6">
+                      {(["normal", "clean", "custom"] as Appearance[]).map((mode) => {
+                        const isClean = mode === "clean";
+                        const isCustom = mode === "custom";
+                        return (
+                          <button
+                            key={mode}
+                            data-appearance-option
+                            type="button"
+                            aria-pressed={appearance === mode}
+                            onClick={() => changeAppearance(mode)}
+                            className={`group rounded-xl border-2 p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${appearance === mode ? "border-primary" : "border-border hover:border-muted-foreground/40"}`}
                           >
                             <div
-                              className={`w-1/4 space-y-2 border-r p-2 ${isClean ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-800"}`}
+                              aria-hidden="true"
+                              className="flex h-32 overflow-hidden rounded-lg border border-slate-200 bg-slate-50"
                             >
                               <div
-                                className={`mb-4 h-2 w-4 rounded ${isClean ? "bg-slate-400" : "bg-amber-400"}`}
-                              />
-                              {[0, 1, 2, 3].map((item) => (
+                                className={`w-1/4 space-y-2 border-r p-2 ${isClean ? "border-slate-200 bg-white" : "border-slate-800 bg-slate-800"}`}
+                                style={
+                                  isCustom
+                                    ? {
+                                        backgroundColor: custom.sidebar,
+                                        borderColor: custom.sidebar,
+                                      }
+                                    : undefined
+                                }
+                              >
                                 <div
-                                  key={item}
-                                  className={`h-1.5 rounded ${item === 0 ? (isClean ? "bg-slate-300" : "bg-amber-400") : isClean ? "bg-slate-100" : "bg-slate-600"}`}
+                                  className={`mb-4 h-2 w-4 rounded ${isClean ? "bg-slate-400" : "bg-amber-400"}`}
                                 />
-                              ))}
-                            </div>
-                            <div className="flex-1 space-y-3 p-3">
-                              <div className="h-2 w-2/3 rounded bg-slate-300" />
-                              <div className="grid grid-cols-3 gap-1.5">
-                                {[0, 1, 2].map((item) => (
+                                {[0, 1, 2, 3].map((item) => (
                                   <div
                                     key={item}
-                                    className="h-6 rounded border border-slate-200 bg-white"
+                                    className={`h-1.5 rounded ${item === 0 ? (isClean ? "bg-slate-300" : "bg-amber-400") : isClean ? "bg-slate-100" : "bg-slate-600"}`}
                                   />
                                 ))}
                               </div>
-                              <div className="flex h-10 items-end gap-1 rounded border border-slate-200 bg-white px-2 pb-1.5">
-                                {[35, 60, 45, 80, 65, 100].map((height, index) => (
-                                  <span
-                                    key={index}
-                                    className={`flex-1 rounded-t-sm ${isClean ? "bg-slate-300" : "bg-amber-300"}`}
-                                    style={{ height: `${height}%` }}
-                                  />
-                                ))}
+                              <div
+                                className="flex-1 space-y-3 p-3"
+                                style={
+                                  isCustom ? { backgroundColor: custom.background } : undefined
+                                }
+                              >
+                                <div className="h-2 w-2/3 rounded bg-slate-300" />
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  {[0, 1, 2].map((item) => (
+                                    <div
+                                      key={item}
+                                      className="h-6 rounded border border-slate-200 bg-white"
+                                      style={
+                                        isCustom
+                                          ? {
+                                              backgroundColor: custom.card,
+                                              borderColor: custom.border,
+                                              borderRadius: `${custom.radius / 3}px`,
+                                            }
+                                          : undefined
+                                      }
+                                    />
+                                  ))}
+                                </div>
+                                <div className="flex h-10 items-end gap-1 rounded border border-slate-200 bg-white px-2 pb-1.5">
+                                  {[35, 60, 45, 80, 65, 100].map((height, index) => (
+                                    <span
+                                      key={index}
+                                      className={`flex-1 rounded-t-sm ${isClean ? "bg-slate-300" : "bg-amber-300"}`}
+                                      style={{
+                                        height: `${height}%`,
+                                        ...(isCustom ? { backgroundColor: custom.primary } : {}),
+                                      }}
+                                    />
+                                  ))}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="mt-3 flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold">
-                              {isClean ? "Clean" : "Normal"}
-                            </span>
-                            <span
-                              className={`flex h-4 w-4 items-center justify-center rounded-full border ${clean === isClean ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"}`}
-                            >
-                              {clean === isClean && <Check className="h-3 w-3" />}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {isClean
-                              ? "Claro, suave e minimalista"
-                              : "Menu escuro e cores marcantes"}
-                          </p>
-                        </button>
-                      ))}
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <span className="text-sm font-semibold">
+                                {isCustom ? "Personalizado" : isClean ? "Clean" : "Normal"}
+                              </span>
+                              <span
+                                className={`flex h-4 w-4 items-center justify-center rounded-full border ${appearance === mode ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40"}`}
+                              >
+                                {appearance === mode && <Check className="h-3 w-3" />}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {isCustom
+                                ? "Suas cores e seu estilo"
+                                : isClean
+                                  ? "Claro, suave e minimalista"
+                                  : "Menu escuro e cores marcantes"}
+                            </p>
+                          </button>
+                        );
+                      })}
                     </div>
+                    {appearance === "custom" && (
+                      <CustomAppearanceEditor
+                        value={custom}
+                        onChange={changeCustom}
+                        onReset={resetCustom}
+                        storageState={storageState}
+                      />
+                    )}
                     <div className="flex items-center justify-between gap-6 border-t px-5 py-5 sm:px-6">
                       <div>
                         <label
@@ -355,7 +399,9 @@ export function Dashboard({
                         id="clean-appearance"
                         aria-describedby="clean-description"
                         checked={clean}
-                        onCheckedChange={changeAppearance}
+                        onCheckedChange={(checked) =>
+                          changeAppearance(checked ? "clean" : "normal")
+                        }
                       />
                     </div>
                   </div>
@@ -383,7 +429,7 @@ export function Dashboard({
               className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
             >
               {kpis.map(({ label, value, change, icon: Icon }) => (
-                <div key={label} className="rounded-2xl border bg-card p-5">
+                <div data-ui-panel key={label} className="rounded-2xl border bg-card p-5">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold">{label}</p>
                     <span className="rounded-xl bg-accent p-2.5 text-primary">
@@ -468,8 +514,16 @@ export function Dashboard({
                     <AreaChart data={conversion} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="conversion-green" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0" stopColor="#16a34a" stopOpacity={0.3} />
-                          <stop offset="1" stopColor="#16a34a" stopOpacity={0.02} />
+                          <stop
+                            offset="0"
+                            stopColor="var(--custom-success, #16a34a)"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="1"
+                            stopColor="var(--custom-success, #16a34a)"
+                            stopOpacity={0.02}
+                          />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
@@ -491,7 +545,7 @@ export function Dashboard({
                         type="monotone"
                         dataKey="value"
                         name="Conversão"
-                        stroke="#16a34a"
+                        stroke="var(--custom-success, #16a34a)"
                         strokeWidth={3}
                         fill="url(#conversion-green)"
                       />
@@ -611,7 +665,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border bg-card p-6">
+    <div data-ui-panel className="rounded-2xl border bg-card p-6">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>
