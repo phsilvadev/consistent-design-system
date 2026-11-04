@@ -29,3 +29,11 @@ Branch: development. Preservar o visual e o histórico do frontend Lovable; não
 Configurar ambiente de implantação compatível com Next + FastAPI. Para nomes personalizados na URL ou múltiplas empresas por usuário, primeiro acrescentar contrato e persistência de vínculos no backend, com migrations e testes próprios.
 
 Publicação confirmada no GitHub: origin/development. Commit de implementação: 941a4f2. Main não foi alterada.
+
+## Configurações — Equipe (escopo adicional autorizado)
+- [x] Colocar Equipe como primeira aba, antes de Aparência, com total real de usuários.
+- [x] Listar e cadastrar usuários com a API existente, sem enviar empresa no payload.
+- [x] Restringir administração da equipe a administradores e tratar falhas de acesso.
+- [x] Validar contagem, criação, isolamento, preservação de Aparência e gerar print.
+
+Validação de Equipe: 71 testes Vitest e 6 cenários E2E aprovados, além de lint, typecheck, build e diff --check. Capturas desktop/mobile geradas usando dados exclusivamente de teste. Nenhuma alteração na API Python ou na branch main.

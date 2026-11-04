@@ -96,3 +96,13 @@ Não há recuperação de senha por e-mail, múltiplos vínculos de empresa, slu
 ## Histórico Lovable
 
 Projeto conectado ao [Lovable](https://lovable.dev/projects/002d9028-b2bf-458a-baf0-0052d8e3a3f2). As alterações desta entrega permanecem na branch development; não reescreva histórico publicado nem force push.
+
+## Configurações → Equipe
+
+Equipe é a primeira aba e abre por padrão, antes de Aparência. Para administradores, o selo ao lado do nome mostra o total real retornado por `GET /api/v1/users`, incluindo usuários ativos e inativos. O total é atualizado ao carregar, atualizar a lista e cadastrar um usuário. Enquanto a quantidade não está disponível, mostra-se `—`, sem assumir zero.
+
+A listagem apresenta nome, e-mail, perfil e status da própria empresa. “Adicionar usuário” usa `POST /api/v1/users`, sem incluir company_id no corpo; o backend obtém a empresa da sessão. A senha inicial não é salva no navegador nem devolvida na lista, e nenhum convite por e-mail é enviado.
+
+Vendedores, supervisores e operadores recebem uma mensagem de acesso restrito à administração da equipe. Aparência continua disponível como preferência pessoal. Edição de perfil e desativação de usuários não foram implementadas nesta etapa.
+
+Validação adicional: 71 testes Vitest aprovados e 6 E2E com FastAPI/SQLite reais, cobrindo contagem após cadastro/reload, troca entre abas, permissões e layout mobile. O backend não precisou ser alterado.

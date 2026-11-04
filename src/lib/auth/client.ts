@@ -7,10 +7,10 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function authRequest(path: string, body?: unknown): Promise<unknown> {
+export async function apiRequest(path: string, body?: unknown): Promise<unknown> {
   let response: Response;
   try {
-    response = await fetch(`/api/v1/auth/${path}`, {
+    response = await fetch(`/api/v1${path}`, {
       method: body === undefined ? "GET" : "POST",
       credentials: "same-origin",
       cache: "no-store",
@@ -32,6 +32,9 @@ export async function authRequest(path: string, body?: unknown): Promise<unknown
     );
   }
   return response.status === 204 ? undefined : response.json();
+}
+export function authRequest(path: string, body?: unknown): Promise<unknown> {
+  return apiRequest(`/auth/${path}`, body);
 }
 async function identityRequest(path: string, body?: unknown): Promise<Identity> {
   const result = identitySchema.safeParse(await authRequest(path, body));
