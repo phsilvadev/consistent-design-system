@@ -11,7 +11,7 @@ Branch: development. Preservar o visual e o histórico do frontend Lovable; não
 - [x] Testar ausência de sessão, token forjado, sessão revogada, tenant diferente, trial e API indisponível.
 - [x] Validar testes existentes, tipos, lint e build; gerar prints.
 - [x] Documentar configuração.
-- [ ] Publicar branch development.
+- [x] Publicar branch development.
 
 ## Limites
 - O backend vincula cada usuário a uma empresa. A URL canônica usa company.id (UUID); nomes/slugs não autorizam acesso. Múltiplos vínculos e slugs personalizados exigem contrato no backend em outra fase.
@@ -27,3 +27,5 @@ Branch: development. Preservar o visual e o histórico do frontend Lovable; não
 
 ## Próxima etapa
 Configurar ambiente de implantação compatível com Next + FastAPI. Para nomes personalizados na URL ou múltiplas empresas por usuário, primeiro acrescentar contrato e persistência de vínculos no backend, com migrations e testes próprios.
+
+Publicação confirmada no GitHub: origin/development. Commit de implementação: 941a4f2. Main não foi alterada.
