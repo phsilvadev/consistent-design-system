@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { CustomAppearanceEditor } from "@/components/appearance/custom-appearance-editor";
 import { type Appearance } from "@/hooks/use-interface-appearance";
 import { BrandLogo, BrandMark } from "@/components/brand-logo";
@@ -238,11 +239,12 @@ export function Dashboard({
 
         <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:px-8">
           <Link href={href("/empresas")} className="font-semibold hover:underline">
-            {tenant.name} · Trocar empresa
+            {tenant.name} · Minha empresa
           </Link>
-          <Link href={href("/login")} className="font-semibold hover:underline">
-            Voltar ao login
-          </Link>
+          <span className="hidden text-muted-foreground sm:inline">
+            Dados comerciais demonstrativos
+          </span>
+          <LogoutButton />
         </div>
         {children ? (
           children

@@ -37,3 +37,9 @@ out/
 *.tsbuildinfo
 .env*
 !.env.example
+
+# Browser integration tests
+playwright-report/
+test-results/
+.e2e-backend.json
+__pycache__/

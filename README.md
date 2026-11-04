@@ -1,41 +1,63 @@
 # AtendeHUB
 
-Interface em Next.js (App Router), TypeScript, React e Tailwind CSS, com dados fixos no código das telas. Não usa banco de dados, autenticação, sessão ou APIs externas.
+Frontend Next.js 16 (App Router), TypeScript, React e Tailwind CSS. A branch **development** inicia a integração com o backend FastAPI: cadastro, login, sessão, logout e autorização por empresa são reais. As telas comerciais continuam demonstrativas, sem integração com WhatsApp, IA ou ERP nesta etapa.
 
-## Executar
+## Desenvolvimento
 
-Node.js 22+ e npm:
+Requer Node.js 22+, npm e o backend separado em [phsilvadev/Atend-hub-backend](https://github.com/phsilvadev/Atend-hub-backend).
+
+No repositório do backend, siga seu README para criar a `.venv`, instalar `requirements.txt`, configurar SQLite e executar `alembic upgrade head`. Inicie a API, sem Docker:
+
+```sh
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Neste repositório:
 
 ```sh
 npm ci
+cp .env.example .env
 npm run dev
 ```
 
-A raiz abre `/empresa-exemplo`. Qualquer identificador de empresa pode ser usado diretamente na URL, sem cadastro ou login:
+Abra **http://localhost:3000/cadastro** para criar empresa, administrador e trial de 7 dias. Ou use `/login` para entrar numa conta existente. Não existem usuários padrão.
 
-- `/qualquer-empresa`
-- `/qualquer-empresa/atendimentos`
-- `/qualquer-empresa/orcamentos`
-- `/qualquer-empresa/clientes`
-- `/qualquer-empresa/produtos`
-- `/qualquer-empresa/relatorios`
-- `/qualquer-empresa/configuracoes`
-- `/qualquer-empresa/integracoes`
-- `/qualquer-empresa/empresas`
-- `/qualquer-empresa/login`
-- `/qualquer-empresa/cadastro`
+Variáveis privadas do servidor Next:
 
-Todas as rotas estão em `src/app/[tenant]/(workspace)`. O identificador serve apenas para navegar e apresentar o nome da empresa. Os dados das telas são fixos e iguais em todos os ambientes; não há isolamento de dados reais nesta versão.
+```dotenv
+BACKEND_URL=http://127.0.0.1:8000
+APP_ORIGIN=http://localhost:3000
+```
 
-Login e cadastro são telas de interface: seus formulários apenas abrem o painel, sem verificar ou armazenar credenciais e sem criar contas. Conversas usam estado local para visualizar mensagens e interações; ao recarregar a página, os dados iniciais voltam. As preferências de aparência ficam no navegador. Em Configurações → Aparência, os cards Normal, Clean e Personalizado ficam lado a lado. Personalizado oferece cores da página, cards, cabeçalho, textos, menu, botões, bordas e gráficos; ajuste automático das cores dos textos; fonte, tamanho e peso dos títulos; espaçamento; largura do menu; cabeçalho fixo; cantos, bordas e sombras; animações; combinações prontas; importação/exportação de temas e restauração do padrão. Os temas também são aplicados aos diálogos e chats laterais; o conteúdo e a organização do dashboard permanecem no layout original.
+`BACKEND_URL` nunca deve usar prefixo NEXT_PUBLIC. `APP_ORIGIN` precisa corresponder exatamente à origem do navegador, também presente no `ALLOWED_ORIGINS` do backend. Para usar `127.0.0.1`, portas diferentes ou HTTPS, ajuste ambos. Produção exige HTTPS, cookie Secure e configuração de banco/infraestrutura no backend.
 
-## Funil de atendimento
+## Rotas e isolamento de empresas
 
-A tela de atendimentos organiza os cards em cinco etapas: Primeiro atendimento com IA, Em orçamento, Negociação, Com vendedor e Finalizado. Os exemplos mostram a IA identificando produto, quantidade e recebimento antes do acompanhamento comercial.
+A raiz `/` leva à empresa autenticada ou ao login. Rotas privadas usam **o UUID real da empresa devolvido pelo backend**, por exemplo `/<company.id>/atendimentos`. A API atual vincula cada usuário a uma empresa e ainda não oferece slug personalizado ou múltiplos vínculos.
 
-É possível arrastar cards, pesquisar clientes e produtos, filtrar por responsável e abrir o chat lateral com o histórico. Assumir o atendimento move o card para a equipe e pausa a IA na interface; devolver à IA retorna à primeira etapa. O seletor no chat permite mover etapas também sem arrastar. Atendimentos finalizados precisam ser reabertos para responder. Novos atendimentos e mensagens existem apenas no estado local: não há conexão com IA, WhatsApp ou ERP.
+- `/<company.id>` — dashboard.
+- `/<company.id>/atendimentos`, `/orcamentos`, `/clientes`, `/produtos`, `/relatorios`.
+- `/<company.id>/configuracoes`, `/integracoes`, `/empresas`.
+- `/login`, `/cadastro` — públicos.
+- `/:tenant/login` e `/:tenant/cadastro` — aliases antigos, redirecionados às telas públicas.
 
-## Verificar e gerar build
+Digitar qualquer nome/ID na URL não concede acesso. O nome e o usuário exibidos vêm da sessão da API. “Minha empresa” apresenta somente a empresa vinculada, sem opções fictícias de troca.
+
+### Middleware no Next.js 16
+
+No Next 16, o middleware se chama **`src/proxy.ts`**. Ele consulta `/api/v1/auth/me` e compara o tenant da URL com `company.id` e `user.company_id` retornados. Não basta existir um cookie. Tentativa de outra empresa recebe **403**, sem renderizar o workspace; indisponibilidade da API falha fechada, com **503**.
+
+O layout servidor repete a verificação de sessão e vínculo, independentemente do proxy. Trial vencido não renderiza conteúdo comercial. O guard cliente aguarda revalidação antes de mostrar o workspace e verifica novamente ao focar a janela e a cada minuto, retirando conteúdo após revogação/troca de conta.
+
+A API Python continua responsável pela autorização final e por filtrar os dados por empresa. Middleware não substitui essas regras. Cada função futura que leia dados no servidor deve manter autorização no ponto de acesso, não apenas no layout.
+
+## Autenticação e proxy da API
+
+O navegador chama `/api/v1/*` na mesma origem; o Route Handler do Next encaminha apenas os endpoints/métodos conhecidos à API. Cookies opacos HttpOnly/SameSite são preservados, não há tokens em JSON/localStorage. Logout revoga a sessão no backend. Origin/Referer são verificados nas mutações, sem CORS amplo, e respostas privadas não têm cache.
+
+Endpoints usados: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`; os caminhos sob `/users` já existentes são encaminhados e autorizados pelo backend. Payloads de mutação são limitados a 16 KiB. Não envie company_id ou perfis no cadastro público.
+
+## Verificar
 
 ```sh
 npm run lint
@@ -45,6 +67,32 @@ npm run build
 npm start
 ```
 
-O projeto usa Webpack para desenvolvimento e build. Não é necessário configurar variáveis de banco ou executar migrações. A hospedagem deve suportar Next.js/Node.js.
+Os testes existentes de aparência e atendimento foram preservados. Foram acrescentados testes para sessão, proxy, layout servidor e revalidação do cliente.
 
-O projeto está conectado ao [Lovable](https://lovable.dev/projects/002d9028-b2bf-458a-baf0-0052d8e3a3f2). Não reescreva o histórico Git publicado.
+### Ponta a ponta com FastAPI e SQLite reais
+
+Instale o backend separado e suas dependências na `.venv`. Depois:
+
+```sh
+npx playwright install chromium
+npm run build
+BACKEND_SOURCE_DIR=../Atend-hub-backend npm run test:e2e
+```
+
+O script inicia Next na porta 3200 e FastAPI na 8200, cria SQLite temporário via migrations e não altera o banco de desenvolvimento. As portas devem estar livres. `BACKEND_SOURCE_DIR` pode ser absoluto. Se Chromium já estiver instalado:
+
+```sh
+BACKEND_SOURCE_DIR=../Atend-hub-backend PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
+```
+
+Os testes cobrem cadastro/login/logout, cookies, duas empresas independentes, todas as telas de outro tenant, RSC/prefetch, falsificação/replay de cookie, trial vencido, usuário inativo, CSRF e aliases públicos. Capturas ficam em `test-results/`, ignorado pelo Git.
+
+## Interface preservada e limites
+
+A aparência mantém Normal, Clean e Personalizado, com preferências no navegador separadas pelos IDs reais de empresa e usuário. O funil de atendimento, gráficos, produtos e relatórios ainda usam exemplos; os dados não representam empresas reais. Mensagens e novos atendimentos são apenas estado de interface. Login/cadastro deixaram de ser demonstrações.
+
+Não há recuperação de senha por e-mail, múltiplos vínculos de empresa, slugs personalizados ou integração de dados comerciais nesta etapa. Consulte [ARCHITECTURE.md](ARCHITECTURE.md) e [CHECKLIST.md](CHECKLIST.md).
+
+## Histórico Lovable
+
+Projeto conectado ao [Lovable](https://lovable.dev/projects/002d9028-b2bf-458a-baf0-0052d8e3a3f2). As alterações desta entrega permanecem na branch development; não reescreva histórico publicado nem force push.

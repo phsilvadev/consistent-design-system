@@ -12,7 +12,7 @@ describe("tenant navigation", () => {
     expect(validTenantSlug(slug)).toBe(false);
     expect(() => tenantHref(slug)).toThrow();
   });
-  it("accepts arbitrary company names without registration", () => {
+  it("encodes a syntactically valid identifier without granting authorization", () => {
     for (const slug of [
       "qualquer-coisa",
       "Empresa_123",

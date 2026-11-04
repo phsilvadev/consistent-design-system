@@ -1,13 +1,13 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { TenantProvider } from "@/lib/tenant/provider";
-import { workspaceContext } from "@/lib/tenant/shared";
+import { testWorkspaceContext } from "@/test/fixtures";
 import { AtendimentoScreen } from "./atendimento-screen";
 
 afterEach(cleanup);
 function setup() {
   render(
-    <TenantProvider value={workspaceContext("qualquer-empresa")}>
+    <TenantProvider value={testWorkspaceContext}>
       <AtendimentoScreen />
     </TenantProvider>,
   );

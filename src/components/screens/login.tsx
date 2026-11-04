@@ -1,6 +1,7 @@
 "use client";
 
-import { ACCESS_TENANT, tenantHref } from "@/lib/tenant/shared";
+import { tenantHref } from "@/lib/tenant/shared";
+import { auth } from "@/lib/auth/client";
 import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -8,21 +9,41 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import { ArrowRight, ArrowUpRight, Eye, EyeOff } from "lucide-react";
 
-export function Login({
-  mode = "login",
-  tenantSlug,
-}: {
-  mode?: "login" | "register";
-  tenantSlug: string;
-}) {
+export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
   const registering = mode === "register";
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  function enterWorkspace(event: FormEvent<HTMLFormElement>) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [remember, setRemember] = useState(false);
+  async function enterWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (busy) return;
+    setError("");
     const form = new FormData(event.currentTarget);
-    const slug = String(form.get("tenant") ?? "").trim() || tenantSlug;
-    router.push(tenantHref(slug));
+    const email = String(form.get("email") || "");
+    const password = String(form.get("password") || "");
+    if (registering && password !== form.get("confirmPassword")) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+    setBusy(true);
+    try {
+      const identity = registering
+        ? await auth.register(
+            String(form.get("name") || ""),
+            String(form.get("companyName") || ""),
+            email,
+            password,
+          )
+        : await auth.login(email, password, remember);
+      router.replace(tenantHref(identity.company.id));
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível entrar. Tente novamente.");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -91,10 +112,10 @@ export function Login({
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-500">
             {registering
-              ? "Cadastre sua empresa e comece a organizar seu atendimento e suas vendas."
+              ? "Cadastre sua empresa e inicie seu período de teste de 7 dias."
               : "Acesse a central de atendimento e vendas da sua distribuidora."}
           </p>
-          <form onSubmit={enterWorkspace} method="post" noValidate className="mt-9 space-y-5">
+          <form onSubmit={enterWorkspace} method="post" className="mt-9 space-y-5">
             {registering && (
               <>
                 <div>
@@ -130,24 +151,6 @@ export function Login({
               </>
             )}
             <div>
-              <label htmlFor="tenant" className="text-sm font-semibold">
-                Identificador da empresa
-              </label>
-              <input
-                id="tenant"
-                name="tenant"
-                defaultValue={!registering && tenantSlug !== ACCESS_TENANT ? tenantSlug : ""}
-                required
-                autoComplete="off"
-                aria-describedby="tenant-help"
-                placeholder="identificador-da-empresa"
-                className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-slate-500"
-              />
-            </div>
-            <p id="tenant-help" className="text-xs text-slate-500">
-              Informe o nome que deseja usar na URL da empresa.
-            </p>
-            <div>
               <label htmlFor="email" className="text-sm font-semibold">
                 E-mail
               </label>
@@ -155,6 +158,7 @@ export function Login({
                 id="email"
                 name="email"
                 type="email"
+                maxLength={254}
                 autoComplete="username"
                 required
                 placeholder="voce@empresa.com.br"
@@ -171,7 +175,8 @@ export function Login({
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete={registering ? "new-password" : "current-password"}
-                  maxLength={256}
+                  maxLength={128}
+                  minLength={registering ? 8 : 1}
                   required
                   placeholder="Digite sua senha"
                   className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-4 pr-12 text-sm outline-none transition focus:border-slate-500 focus:ring-2 focus:ring-slate-200"
@@ -198,17 +203,38 @@ export function Login({
                   type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
-                  maxLength={256}
+                  maxLength={128}
+                  minLength={8}
                   placeholder="Repita sua senha"
                   className="mt-2 h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-slate-500"
                 />
               </div>
             )}
+            {!registering && (
+              <label className="flex items-center gap-2 text-sm text-slate-500">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="accent-orange-500"
+                />
+                Lembrar meu acesso
+              </label>
+            )}
+            {error && (
+              <p
+                role="alert"
+                className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              >
+                {error}
+              </p>
+            )}
             <button
+              disabled={busy}
               type="submit"
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
             >
-              {registering ? "Continuar" : "Entrar"}
+              {busy ? "Aguarde…" : registering ? "Criar conta" : "Entrar"}
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
@@ -217,7 +243,7 @@ export function Login({
               {registering ? "Já tem uma conta?" : "Ainda não tem uma conta?"}
             </p>
             <Link
-              href={tenantHref(tenantSlug, registering ? "/login" : "/cadastro")}
+              href={registering ? "/login" : "/cadastro"}
               className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-slate-700 underline-offset-4 hover:underline"
             >
               {registering ? "Entrar" : "Cadastre-se"}

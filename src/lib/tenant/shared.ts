@@ -1,7 +1,8 @@
+import type { Identity } from "@/lib/auth/contracts";
 export const ACCESS_TENANT = "acesso";
 
 export type Tenant = { id: string; slug: string; name: string };
-export type TenantUser = { id: string; name: string; role: "owner" | "admin" | "member" };
+export type TenantUser = { id: string; name: string; role: Identity["user"]["role"] };
 export type TenantContext = { tenant: Tenant; user: TenantUser };
 
 export function validTenantSlug(value: string): boolean {
@@ -29,9 +30,11 @@ export function tenantHref(slug: string, path = "/"): string {
   return `/${encodeURIComponent(slug)}${path === "/" ? "" : path}`;
 }
 
-export function workspaceContext(slug: string): TenantContext {
+export function authenticatedContext(identity: Identity): TenantContext {
+  if (!identity.user.active || identity.user.company_id !== identity.company.id)
+    throw new Error("Vínculo de empresa inválido.");
   return {
-    tenant: { id: slug, slug, name: slug.replace(/[-_]/g, " ") },
-    user: { id: "usuario-fixo", name: "Marina Silva", role: "owner" },
+    tenant: { id: identity.company.id, slug: identity.company.id, name: identity.company.name },
+    user: { id: identity.user.id, name: identity.user.name, role: identity.user.role },
   };
 }

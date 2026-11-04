@@ -2,7 +2,13 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   poweredByHeader: false,
-  experimental: { useTypeScriptCli: false, workerThreads: true, webpackBuildWorker: false },
+  skipProxyUrlNormalize: true,
+  experimental: {
+    authInterrupts: true,
+    useTypeScriptCli: false,
+    workerThreads: true,
+    webpackBuildWorker: false,
+  },
   async headers() {
     return [
       {
