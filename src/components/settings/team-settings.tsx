@@ -307,14 +307,7 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
               criado para {tenant.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {createdUser && (
-            <div className="my-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Ativo<span aria-hidden="true">·</span>
-              {roleLabels[createdUser.role]}
-            </div>
-          )}
-          <p className="mb-6 text-center text-xs leading-5 text-muted-foreground">
+          <p className="mb-6 mt-5 text-center text-xs leading-5 text-muted-foreground">
             Compartilhe as credenciais de acesso com o usuário. Nenhum convite por e-mail foi
             enviado.
           </p>

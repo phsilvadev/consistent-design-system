@@ -44,3 +44,5 @@ Validação de Equipe: 71 testes Vitest e 6 cenários E2E aprovados, além de li
 - [x] Validar e capturar modal de cadastro e modal de sucesso em desktop.
 
 Validação: build e lint aprovados; E2E de Equipe aprovado com erro de e-mail duplicado, cadastro real, contador, blur e restauração do foco. Prints desktop dos dois modais gerados. Backend sem alterações.
+
+- [x] Remover a linha “Ativo · Vendedor” do modal de sucesso. Build e E2E de Equipe aprovados; print atualizado.
