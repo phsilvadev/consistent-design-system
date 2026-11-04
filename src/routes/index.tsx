@@ -114,14 +114,14 @@ function Dashboard() {
         </header>
 
         <main className="space-y-8 p-4 md:p-8">
-          <section className="relative overflow-hidden rounded-2xl bg-secondary p-6 text-secondary-foreground md:p-10">
-            <div className="pointer-events-none absolute -right-10 top-0 h-full w-1/2 opacity-20"
-              style={{ background: "repeating-linear-gradient(135deg, var(--primary) 0 3px, transparent 3px 28px)" }} />
-            <p className="eyebrow text-primary">Bom dia</p>
-            <h1 className="display mt-3 max-w-xl text-3xl md:text-4xl">Olá, Marina. Tudo em ordem por aqui.</h1>
-            <div className="relative mt-6 flex flex-wrap gap-3">
+          <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-6">
+            <div>
+              <p className="eyebrow text-primary">Bom dia</p>
+              <h1 className="mt-2 text-sm font-semibold md:text-lg">Olá, Marina. Tudo em ordem por aqui.</h1>
+            </div>
+            <div className="flex flex-wrap gap-3">
               <Pill>Nova venda</Pill>
-              <button onClick={() => setShow(!show)} className="inline-flex items-center gap-2 rounded-full border border-secondary-foreground/30 px-5 py-2.5 text-xs font-bold uppercase tracking-wide hover:bg-secondary-foreground/10">
+              <button onClick={() => setShow(!show)} className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-muted">
                 {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}{show ? "Ocultar valores" : "Mostrar valores"}
               </button>
             </div>
