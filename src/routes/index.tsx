@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Home,
   Users,
@@ -30,6 +30,15 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+
+import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -116,9 +125,59 @@ const kpis = [
 
 function Dashboard() {
   const [open, setOpen] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [clean, setClean] = useState(false);
+
+  useEffect(() => {
+    try {
+      setClean(localStorage.getItem("forja-appearance") === "clean");
+    } catch {
+      // Keep the default appearance when browser storage is unavailable.
+    }
+  }, []);
+
+  function changeAppearance(checked: boolean) {
+    setClean(checked);
+    try {
+      localStorage.setItem("forja-appearance", checked ? "clean" : "normal");
+    } catch {
+      // The appearance can still be changed for the current session.
+    }
+  }
 
   return (
-    <div className="flex min-h-screen bg-background font-sans text-foreground">
+    <div
+      data-appearance={clean ? "clean" : "normal"}
+      className="flex min-h-screen bg-background font-sans text-foreground"
+    >
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent data-appearance={clean ? "clean" : "normal"} className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configurações</DialogTitle>
+            <DialogDescription>Personalize a aparência do seu painel.</DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center justify-between gap-6 rounded-xl border p-4">
+            <div>
+              <label htmlFor="clean-appearance" className="cursor-pointer text-sm font-semibold">
+                Modo clean
+              </label>
+              <p id="clean-description" className="mt-1 text-sm text-muted-foreground">
+                Menu claro, cores suaves e tipografia mais leve.
+              </p>
+            </div>
+            <Switch
+              id="clean-appearance"
+              aria-describedby="clean-description"
+              checked={clean}
+              onCheckedChange={changeAppearance}
+            />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {clean ? "Visual clean ativado" : "Visual normal ativado"}. A alteração é aplicada na
+            hora e salva neste navegador.
+          </p>
+        </DialogContent>
+      </Dialog>
       <aside
         className={`${open ? "w-64" : "w-16"} sticky top-0 hidden h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-all md:flex`}
       >
@@ -130,15 +189,16 @@ function Dashboard() {
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
           {menu.map(([Icon, label], i) => (
-            <a
+            <button
               key={label}
-              href="#"
+              type="button"
+              onClick={label === "Configurações" ? () => setSettingsOpen(true) : undefined}
               title={label}
-              className={`flex items-center gap-3 rounded-full px-3 py-2 text-sm font-semibold transition-colors ${i === 0 ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}
+              className={`flex w-full items-center gap-3 rounded-full text-left px-3 py-2 text-sm font-semibold transition-colors ${i === 0 ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}
             >
               <Icon className="h-4 w-4 shrink-0" />
               {open && label}
-            </a>
+            </button>
           ))}
         </nav>
       </aside>
@@ -161,7 +221,11 @@ function Dashboard() {
               <Bell className="h-5 w-5" />
               <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary" />
             </button>
-            <button aria-label="Configurações da conta" className="rounded-full p-2 hover:bg-muted">
+            <button
+              onClick={() => setSettingsOpen(true)}
+              aria-label="Configurações da conta"
+              className="rounded-full p-2 hover:bg-muted"
+            >
               <Settings className="h-5 w-5" />
             </button>
             <button className="ml-2 flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 hover:bg-muted">
@@ -417,7 +481,7 @@ function Panel({
     <div className="rounded-2xl border bg-card p-6">
       <div className="mb-5 flex items-end justify-between gap-3">
         <div>
-          <p className="eyebrow text-muted-foreground">{eyebrow}</p>
+          <p className="text-sm font-semibold text-muted-foreground">{eyebrow}</p>
           <h2 className="display mt-2 text-xl">{title}</h2>
         </div>
         {action}

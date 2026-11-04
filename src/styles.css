@@ -160,3 +160,48 @@
   letter-spacing: -0.02em;
   line-height: 1.05;
 }
+
+[data-appearance="clean"] {
+  --background: #f8fafb;
+  --foreground: #26313d;
+  --primary: #475d72;
+  --primary-foreground: #ffffff;
+  --secondary: #edf1f5;
+  --secondary-foreground: #475d72;
+  --accent: #f0f4f7;
+  --muted: #f1f4f6;
+  --muted-foreground: #657383;
+  --border: #e7ecf0;
+  --ring: #475d72;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #657383;
+  --sidebar-primary: #edf2f6;
+  --sidebar-primary-foreground: #263e53;
+  --sidebar-accent: #f5f7f9;
+  --sidebar-accent-foreground: #26313d;
+}
+
+[data-appearance="clean"] aside {
+  border-right: 1px solid var(--border);
+}
+
+[data-appearance="clean"] .display {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+[data-appearance="clean"] .eyebrow {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+[data-appearance="clean"] button.uppercase {
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
