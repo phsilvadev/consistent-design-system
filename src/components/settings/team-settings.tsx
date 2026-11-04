@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Users, Plus, RefreshCw, LockKeyhole, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 import { useTenant } from "@/lib/tenant/provider";
@@ -16,6 +16,15 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 const roles = Object.entries(roleLabels) as [TeamRole, string][];
 export function TeamSettings({ onCountChange }: { onCountChange: (count: number | null) => void }) {
   const { tenant, user } = useTenant();
@@ -24,7 +33,8 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
   const [users, setUsers] = useState<TeamUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
+  const [createdUser, setCreatedUser] = useState<Pick<TeamUser, "name" | "role"> | null>(null);
+  const addUserButton = useRef<HTMLButtonElement>(null);
   const [revision, setRevision] = useState(0);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -73,14 +83,14 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
     setBusy(true);
     setFormError("");
     try {
-      await teamApi.create(tenant.id, {
+      const created = await teamApi.create(tenant.id, {
         name: String(form.get("name") || "").trim(),
         email: String(form.get("email") || "").trim(),
         password: String(form.get("password") || ""),
         role: String(form.get("role")) as TeamRole,
       });
       setOpen(false);
-      setNotice("Usuário cadastrado. O acesso já está disponível; nenhum e-mail foi enviado.");
+      setCreatedUser({ name: created.name, role: created.role });
       setRevision((value) => value + 1);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -133,7 +143,7 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
             }}
           >
             <DialogTrigger asChild>
-              <Button className="rounded-full px-5 font-semibold">
+              <Button ref={addUserButton} className="rounded-full px-5 font-semibold">
                 <Plus className="h-4 w-4" />
                 Adicionar usuário
               </Button>
@@ -141,6 +151,9 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
             <DialogContent
               className="max-h-[90svh] overflow-y-auto rounded-2xl"
               style={{ maxWidth: "min(32rem, calc(100vw - 2rem))" }}
+              onCloseAutoFocus={(event) => {
+                if (createdUser) event.preventDefault();
+              }}
             >
               <DialogHeader>
                 <DialogTitle>Adicionar usuário</DialogTitle>
@@ -263,15 +276,55 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
           </Dialog>
         </div>
       </div>
-      {notice && (
-        <p
-          role="status"
-          className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+      <AlertDialog
+        open={createdUser !== null}
+        onOpenChange={(next) => {
+          if (!next) setCreatedUser(null);
+        }}
+      >
+        <AlertDialogContent
+          overlayClassName="bg-slate-950/40 backdrop-blur-sm"
+          className="gap-0 rounded-2xl p-7 sm:rounded-2xl"
+          style={{ maxWidth: "min(27rem, calc(100vw - 2rem))" }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            addUserButton.current?.focus();
+          }}
         >
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
-          {notice}
-        </p>
-      )}
+          <AlertDialogHeader className="items-center space-y-0 text-center sm:text-center">
+            <span
+              aria-hidden="true"
+              className="mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-emerald-600"
+            >
+              <CheckCircle2 className="h-7 w-7" />
+            </span>
+            <AlertDialogTitle className="text-xl font-semibold tracking-tight">
+              Usuário cadastrado
+            </AlertDialogTitle>
+            <AlertDialogDescription className="pt-3 text-sm leading-6">
+              O acesso de{" "}
+              <strong className="font-medium text-foreground">{createdUser?.name}</strong> foi
+              criado para {tenant.name}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {createdUser && (
+            <div className="my-5 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Ativo<span aria-hidden="true">·</span>
+              {roleLabels[createdUser.role]}
+            </div>
+          )}
+          <p className="mb-6 text-center text-xs leading-5 text-muted-foreground">
+            Compartilhe as credenciais de acesso com o usuário. Nenhum convite por e-mail foi
+            enviado.
+          </p>
+          <AlertDialogFooter className="sm:justify-center">
+            <AlertDialogAction className="w-full rounded-xl font-semibold">
+              Voltar para equipe
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {error ? (
         <div role="alert" className="rounded-2xl border bg-card p-6">
           <p className="text-sm text-destructive">{error}</p>

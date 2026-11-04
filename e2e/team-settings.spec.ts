@@ -43,13 +43,46 @@ test("Equipe vem primeiro, conta usuários reais e atualiza após cadastro", asy
   await expect(page.getByText("Ana Souza", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Adicionar usuário", exact: true }).click();
   const dialog = page.getByRole("dialog", { name: "Adicionar usuário", exact: true });
+  await expect(dialog).toBeVisible();
+  await dialog.evaluate(async (element) => {
+    await Promise.all(
+      element
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  await expect(dialog).toHaveCSS("opacity", "1");
+  await page.screenshot({ path: test.info().outputPath("user-create-modal-desktop.png") });
   await dialog.getByLabel("Nome completo", { exact: true }).fill("Juliana Costa");
   const email = `juliana-${stamp}@example.com`;
-  await dialog.getByLabel("E-mail", { exact: true }).fill(email);
+  await dialog.getByLabel("E-mail", { exact: true }).fill(identity.user.email);
   await dialog.getByLabel("Perfil de acesso", { exact: true }).selectOption("seller");
   await dialog.getByLabel("Senha inicial", { exact: true }).fill("Senha-segura-456");
   await dialog.getByRole("button", { name: "Cadastrar usuário", exact: true }).click();
+  await expect(dialog.getByRole("alert")).toContainText("E-mail indisponível");
+  await expect(page.getByRole("alertdialog")).toHaveCount(0);
+  await dialog.getByLabel("E-mail", { exact: true }).fill(email);
+  await dialog.getByRole("button", { name: "Cadastrar usuário", exact: true }).click();
   await expect(dialog).toHaveCount(0);
+  const success = page.getByRole("alertdialog", { name: "Usuário cadastrado", exact: true });
+  await expect(success).toBeVisible();
+  await success.evaluate(async (element) => {
+    await Promise.all(
+      element
+        .getAnimations({ subtree: true })
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+  await expect(success).toHaveCSS("opacity", "1");
+  await expect(success.getByText("Juliana Costa", { exact: true })).toBeVisible();
+  const blur = await page
+    .locator('[data-state="open"][class*="backdrop-blur-sm"]')
+    .evaluate((element) => getComputedStyle(element).backdropFilter);
+  expect(blur).toContain("blur");
+  await page.screenshot({ path: test.info().outputPath("user-success-modal-desktop.png") });
+  await success.getByRole("button", { name: "Voltar para equipe" }).click();
+  await expect(success).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Adicionar usuário", exact: true })).toBeFocused();
   await expect(page.getByLabel("Quantidade de usuários: 5")).toHaveText("5");
   await expect(page.getByText(email, { exact: true })).toBeVisible();
   await page.screenshot({

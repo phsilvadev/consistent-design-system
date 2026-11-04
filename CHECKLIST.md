@@ -37,3 +37,10 @@ Publicação confirmada no GitHub: origin/development. Commit de implementação
 - [x] Validar contagem, criação, isolamento, preservação de Aparência e gerar print.
 
 Validação de Equipe: 71 testes Vitest e 6 cenários E2E aprovados, além de lint, typecheck, build e diff --check. Capturas desktop/mobile geradas usando dados exclusivamente de teste. Nenhuma alteração na API Python ou na branch main.
+
+## Confirmação de cadastro de usuário
+- [x] Substituir aviso inline por modal de sucesso com fundo desfocado, após confirmação da API.
+- [x] Preservar erros no formulário, atualização do contador e navegação acessível.
+- [x] Validar e capturar modal de cadastro e modal de sucesso em desktop.
+
+Validação: build e lint aprovados; E2E de Equipe aprovado com erro de e-mail duplicado, cadastro real, contador, blur e restauração do foco. Prints desktop dos dois modais gerados. Backend sem alterações.
