@@ -130,8 +130,8 @@ function Dashboard() {
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {kpis.map(([l, v, hl]) => (
               <div key={l} className={`rounded-2xl border p-5 ${hl ? "border-primary bg-primary text-primary-foreground" : "bg-card"}`}>
-                <p className={`eyebrow ${hl ? "" : "text-muted-foreground"}`}>{l}</p>
-                <p className="display mt-3 text-2xl normal-case">{money(v)}</p>
+                <p className="text-sm font-semibold leading-none">{l}</p>
+                <p className="mt-3 text-sm font-semibold">{money(v)}</p>
               </div>
             ))}
           </section>
