@@ -338,3 +338,11 @@ Validado: lint/build e 2 E2E da integração aprovados. O teste confirma posiç�
 - [x] Botões Conectar em cinza/outline, abertura de aside sem iniciar pareamento; ajuda dentro dos painéis e aside oficial mais largo.
 
 Validação: lint/build e 2 E2E aprovados. Testes conferem dois botões Conectar, acesso ao painel QR com gateway desabilitado e geração bloqueada, ajuda interna, aside oficial em x=0 com largura 640px, guia expansível e fechamento/mobile sem overflow; fluxo QR continua validado. Prints desktop/mobile dos cards e painel oficial atualizados. Nenhuma ativação automática oficial foi adicionada: atendimento assistido continua explícito.
+
+### Cadastro seguro do WhatsApp oficial
+- [x] Formulário de credenciais integrado à validação Meta no backend, token nunca retornado e limpeza após submissão/fechamento; testes e print validados.
+
+- [x] Expandir o aside de 640 para 960px quando há token salvo e mostrar diagnóstico/registro Cloud API/inscrição WABA/recebimento.
+- [x] Exigir confirmação para operações de registro e inscrição; PIN somente transitório, sem persistência no navegador.
+
+Validação: 95 Vitest, lint/build/typecheck e 3 E2E aprovados. E2E de credenciais usa contrato de provedor simulado, valida token em input password e limpeza, nenhuma persistência em local/sessionStorage, expansão 960px e ações explícitas. Backend: 82 Pytest com Graph HTTP simulado, isolamento e criptografia. Conta/aplicativo Meta reais não foram configurados; prints de cadastro/ativação utilizam dados de teste. Sem Docker.

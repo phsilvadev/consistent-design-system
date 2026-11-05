@@ -148,3 +148,11 @@ O teste opt-in `QR_GATEWAY_LIVE=1 npx playwright test e2e/qr-gateway-live.spec.t
 A conexão WhatsApp abre em painel lateral esquerdo: antes do pareamento, apresenta instruções e QR temporário; quando conectada, o botão laranja **Configurar** reabre os detalhes da empresa, tipo, status, número e desconexão confirmada. Em mobile, o painel ocupa a largura disponível e mantém o rodapé acessível.
 
 Os dois cards WhatsApp usam botão cinza **Conectar**, que abre o aside esquerdo. A ajuda **Como conectar** fica dentro de cada painel. O painel oficial possui 640px no desktop; no QR, a ação **Gerar QR Code** inicia o pareamento apenas após abrir os detalhes. Sem gateway configurado, os detalhes/ajuda continuam acessíveis e a geração fica desabilitada.
+
+## Configuração manual oficial e segurança
+
+O aside oficial agora possui Phone Number ID, WABA ID e token (campo password). **Validar e salvar** chama o backend; o token nunca é devolvido à interface, não entra em localStorage/sessionStorage e é limpo após envio/fechamento. Reabrir mostra somente que existe um token protegido; campo vazio reutiliza-o com os mesmos IDs.
+
+Após salvar, o aside se expande de 640 para 960px e exibe o diagnóstico: aplicativo emissor, registro Cloud API, inscrição WABA e último recebimento. Ações Registrar na Cloud API (PIN transitório) e Ativar recebimento exigem confirmação e validação no backend. App ID/Secret, verify token e chave de criptografia são parâmetros da plataforma no servidor, nunca variáveis NEXT_PUBLIC. Consulte o README do backend para inicializar a chave em desenvolvimento e configurar o aplicativo/webhook na Meta. Sem configuração do aplicativo ou permissões suficientes, a ativação fica bloqueada. Não há cadastro incorporado/renovação automática ou envio de mensagens nesta etapa.
+
+Validar token/número e inscrever WABA não comprovam que o webhook global/campo messages está configurado. O painel distingue essas etapas; conta e mensagens reais precisam de validação com credenciais autorizadas.

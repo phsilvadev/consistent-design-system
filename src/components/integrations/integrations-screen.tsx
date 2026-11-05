@@ -12,6 +12,7 @@ import {
   Braces,
   CircleHelp,
 } from "lucide-react";
+import { OfficialWhatsApp } from "./official-whatsapp";
 import { useTenant } from "@/lib/tenant/provider";
 import { whatsappQR, type QRConnection } from "@/lib/auth/whatsapp-qr";
 import { Button } from "@/components/ui/button";
@@ -50,8 +51,6 @@ export function IntegrationsScreen() {
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
-  const [officialInfo, setOfficialInfo] = useState(false);
-  const [officialHelp, setOfficialHelp] = useState(false);
   const [qrHelp, setQrHelp] = useState(false);
   const [revision, setRevision] = useState(0);
   const [clock, setClock] = useState(() => Math.floor(Date.now() / 1000));
@@ -200,33 +199,7 @@ export function IntegrationsScreen() {
               )}
             </div>
           </article>
-          <article className="flex min-h-72 flex-col rounded-[32px] bg-card p-6 shadow-[0_4px_24px_-4px_rgba(24,32,55,0.07)]">
-            <div className="mb-5 flex items-start justify-between gap-2">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
-                <MessageCircle className="h-6 w-6" />
-              </span>
-              <span className="mt-0.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                Configuração assistida
-              </span>
-            </div>
-            <h3 className="text-lg font-bold tracking-tight">WhatsApp Business</h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              Receba mensagens pela integração oficial com a Cloud API da Meta.
-            </p>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Conexão oficial · número comercial
-            </p>
-            <div className="mt-auto pt-6">
-              <Button
-                variant="outline"
-                className="h-10 w-full rounded-full font-normal"
-                disabled={!admin}
-                onClick={() => setOfficialInfo(true)}
-              >
-                Conectar
-              </Button>
-            </div>
-          </article>
+          <OfficialWhatsApp />
         </div>
         {admin && data && !data.enabled && (
           <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
@@ -285,107 +258,6 @@ export function IntegrationsScreen() {
         Cada conexão pertence à sua empresa. Nesta etapa, o WhatsApp recebe mensagens de texto; o
         envio de respostas ainda está em preparação.
       </p>
-      <Sheet open={officialInfo && admin} onOpenChange={setOfficialInfo}>
-        <SheetContent
-          side="left"
-          className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[640px] [&>button]:right-6 [&>button]:top-7"
-        >
-          <SheetHeader className="border-b bg-card p-7 pr-14 text-left">
-            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-500">
-              <MessageCircle className="h-6 w-6" />
-            </span>
-            <SheetTitle>WhatsApp Business oficial</SheetTitle>
-            <SheetDescription>
-              Configure a conexão oficial da sua empresa com a Meta.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex-1 space-y-6 overflow-y-auto p-6 sm:p-7">
-            <section className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
-              <h3 className="text-sm font-semibold">Detalhes da integração</h3>
-              <dl className="grid gap-5 sm:grid-cols-2">
-                {[
-                  ["Empresa", tenant.name],
-                  ["Tipo de conexão", "Cloud API · oficial"],
-                  ["Ativação", "Assistida pela plataforma"],
-                  ["Canal", "WhatsApp Business"],
-                ].map(([label, value]) => (
-                  <div key={label} className="space-y-1.5">
-                    <dt className="text-xs text-muted-foreground">{label}</dt>
-                    <dd className="break-words text-sm font-medium">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </section>
-            <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
-              <div className="flex items-start gap-3">
-                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-500" />
-                <div>
-                  <h3 className="text-sm font-semibold">Antes de conectar</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    Tenha um número comercial autorizado e acesso de administrador à conta da sua
-                    empresa na Meta.
-                  </p>
-                </div>
-              </div>
-              <Button
-                variant="outline"
-                className="w-full rounded-full"
-                aria-expanded={officialHelp}
-                aria-controls="official-connect-help"
-                onClick={() => setOfficialHelp((v) => !v)}
-              >
-                <CircleHelp className="mr-2 h-4 w-4" />
-                Como conectar
-              </Button>
-              {officialHelp && (
-                <ol id="official-connect-help" className="space-y-5 border-t pt-5">
-                  {[
-                    [
-                      "Prepare sua conta",
-                      "Confirme os dados da empresa e o número comercial que será usado no atendimento.",
-                    ],
-                    [
-                      "Autorize a conexão",
-                      "O administrador da empresa participa da autorização na Meta, com orientação do suporte da plataforma.",
-                    ],
-                    [
-                      "Conclua a ativação",
-                      "O suporte configura e valida o recebimento de mensagens para a sua empresa.",
-                    ],
-                    [
-                      "Teste o atendimento",
-                      "Após a confirmação da ativação, envie uma mensagem de teste para conferir a chegada na central.",
-                    ],
-                  ].map(([title, text], index) => (
-                    <li key={title} className="flex gap-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-600">
-                        {index + 1}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium">{title}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-            <p className="rounded-2xl bg-blue-50 p-4 text-xs leading-relaxed text-blue-900">
-              A ativação oficial é assistida pelo suporte. A autorização automática pela Meta ainda
-              está em preparação; esta tela não ativa a conexão por conta própria.
-            </p>
-          </div>
-          <div className="border-t bg-card p-6">
-            <Button
-              variant="outline"
-              className="w-full rounded-full"
-              onClick={() => setOfficialInfo(false)}
-            >
-              Fechar
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
       <Sheet open={open && admin} onOpenChange={setOpen}>
         <SheetContent
           side="left"
