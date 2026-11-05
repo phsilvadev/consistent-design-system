@@ -73,3 +73,39 @@ it("rejeita confirmação de leitura de outra conversa", async () => {
     conversationsApi.read(conversationFixture.company_id, conversationFixture.id, 8),
   ).rejects.toThrow("validar a leitura");
 });
+
+it("aceita atendimento e mensagem recebidos do WhatsApp", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ...conversationFixture, channel: "whatsapp" })),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            items: [
+              {
+                id: 1,
+                company_id: conversationFixture.company_id,
+                conversation_id: conversationFixture.id,
+                actor: null,
+                kind: "whatsapp_inbound",
+                body: "Preciso de metalon",
+                created_at: 1,
+              },
+            ],
+            next_before: null,
+          }),
+        ),
+      ),
+  );
+  expect(
+    (await conversationsApi.get(conversationFixture.company_id, conversationFixture.id)).channel,
+  ).toBe("whatsapp");
+  expect(
+    (await conversationsApi.messages(conversationFixture.company_id, conversationFixture.id))
+      .items[0].kind,
+  ).toBe("whatsapp_inbound");
+});

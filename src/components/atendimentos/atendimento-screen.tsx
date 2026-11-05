@@ -977,7 +977,7 @@ export function AtendimentoScreen() {
               <div className="space-y-4 border-b bg-muted/10 p-5">
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span className="rounded-full border bg-background px-2.5 py-1">
-                    Canal manual
+                    {selected.channel === "whatsapp" ? "WhatsApp" : "Canal manual"}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Phone className="h-3 w-3" />+{selected.customer.phone}
@@ -1150,18 +1150,24 @@ export function AtendimentoScreen() {
                     ) : (
                       <div
                         key={message.id}
-                        className={`flex ${message.kind === "customer_record" ? "justify-start" : "justify-end"}`}
+                        className={`flex ${["customer_record", "whatsapp_inbound"].includes(message.kind) ? "justify-start" : "justify-end"}`}
                       >
                         <div
-                          className={`max-w-[90%] rounded-2xl border p-4 sm:max-w-[80%] ${message.kind === "customer_record" ? "bg-card" : message.kind === "internal_note" ? "border-amber-200 bg-amber-50 text-amber-950" : "border-primary/15 bg-primary/10"}`}
+                          className={`max-w-[90%] rounded-2xl border p-4 sm:max-w-[80%] ${["customer_record", "whatsapp_inbound"].includes(message.kind) ? "bg-card" : message.kind === "internal_note" ? "border-amber-200 bg-amber-50 text-amber-950" : "border-primary/15 bg-primary/10"}`}
                         >
                           <p className="mb-2 text-[10px] font-semibold text-muted-foreground">
-                            {message.kind === "customer_record"
-                              ? "Relato do cliente · registro manual"
-                              : message.kind === "internal_note"
-                                ? "Nota interna"
-                                : "Mensagem manual"}{" "}
-                            · {message.actor?.name ?? "Equipe"}
+                            {message.kind === "whatsapp_inbound"
+                              ? "Cliente · WhatsApp"
+                              : message.kind === "customer_record"
+                                ? "Relato do cliente · registro manual"
+                                : message.kind === "internal_note"
+                                  ? "Nota interna"
+                                  : "Mensagem manual"}{" "}
+                            ·{" "}
+                            {message.actor?.name ??
+                              (message.kind === "whatsapp_inbound"
+                                ? selected?.customer.name
+                                : "Equipe")}
                           </p>
                           <p className="whitespace-pre-wrap break-words text-sm leading-6">
                             {message.body}

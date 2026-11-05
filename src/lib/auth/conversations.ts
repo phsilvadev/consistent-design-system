@@ -36,7 +36,7 @@ const conversationSchema = z.object({
   assigned_user: personSchema.nullable(),
   subject: z.string(),
   status: z.enum(conversationStatuses),
-  channel: z.literal("manual"),
+  channel: z.enum(["manual", "whatsapp"]),
   created_at: z.number(),
   updated_at: z.number(),
   closed_at: z.number().nullable(),
@@ -51,7 +51,13 @@ const messageSchema = z.object({
   company_id: z.string().uuid(),
   conversation_id: z.string().uuid(),
   actor: personSchema.nullable(),
-  kind: z.enum(["system", "customer_record", "manual_outbound", "internal_note"]),
+  kind: z.enum([
+    "system",
+    "customer_record",
+    "whatsapp_inbound",
+    "manual_outbound",
+    "internal_note",
+  ]),
   body: z.string(),
   created_at: z.number(),
 });

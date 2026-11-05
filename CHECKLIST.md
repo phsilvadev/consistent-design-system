@@ -315,3 +315,8 @@ Validação: 88 testes Vitest, build e lint aprovados; cenários E2E de central,
 - [x] Validar autorização, privacidade, idempotência, versões e regressões; documentar a divisão cliente/plataforma.
 
 Decisão adotada: WhatsApp operacional e ERP pertencem ao painel de cada distribuidora. A plataforma importa somente arquivos autorizados para curadoria da base comum. Não há coleta automática de conversas, conexão WhatsApp global, treinamento automático ou consumo OpenAI implementado nesta etapa. Biblioteca privada de empresa, busca semântica e frontend do superadministrador continuam pendentes. Validação: 59 testes Pytest e 5 E2E de autenticação/isolamento do frontend aprovados; grupo de conhecimento revalidado após ajustes de redação e publicação. Migration aplicada ao SQLite local sem criar conta real ou conteúdo fictício. Documentação do Dashboard proposta, não implementada. Nenhum Docker executado.
+
+### Execução atual — entrada WhatsApp
+- [x] Aceitar canal WhatsApp e mensagens recebidas no contrato e histórico, com teste integrado e print.
+
+Validação: 89 Vitest, lint/build e 1 E2E com backend real/SQLite temporário aprovados para webhook assinado→central, incluindo reentrega sem duplicidade. Envio ainda não implementado: composer preserva aviso de registro local. Fila, mídias, status e conexão Meta real continuam pendentes no checklist backend.

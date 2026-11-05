@@ -134,3 +134,7 @@ A conversa abre em Modal por padrão. O seletor no cabeçalho, alinhado ao fecha
 
 ### Divisão cliente/plataforma para conhecimento
 O WhatsApp operacional pertence a cada distribuidora, junto de sua integração ERP. A plataforma utiliza somente arquivos autorizados para curadoria do conhecimento comum. O backend passou a oferecer sessão de plataforma separada e APIs de importação JSON, revisão, versões e publicação. O frontend do superadministrador e o encaminhamento de suas rotas/cookie pelo BFF ainda não foram implementados; o login de cliente continua sem privilégios globais. A tela atual de Integrações permanece demonstrativa e não comprova uma conexão operacional. Consulte a documentação no repositório do backend.
+
+## WhatsApp recebido na central
+
+A central aceita `channel=whatsapp` e mensagens `whatsapp_inbound` autenticadas pelo webhook do backend, com identificação do cliente e leitura individual. A criação/reutilização do atendimento ocorre no backend. O composer permanece registro manual local; envio real, credenciais/tela de conexão Meta, mídias, status de entrega e IA continuam pendentes. Consulte o README/checklist do backend para configurar secrets e vínculo oficial do número.
