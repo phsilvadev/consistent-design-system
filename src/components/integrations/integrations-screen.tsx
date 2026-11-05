@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import {
   MessageCircle,
+  Link2,
+  CheckCircle2,
   QrCode,
   ShieldCheck,
   RefreshCw,
@@ -143,17 +145,17 @@ export function IntegrationsScreen() {
         <div className="grid items-stretch gap-6 md:grid-cols-2 xl:grid-cols-3">
           <article className="flex min-h-72 flex-col rounded-[32px] bg-card p-6 shadow-[0_4px_24px_-4px_rgba(24,32,55,0.07)]">
             <div className="mb-5 flex items-start justify-between gap-2">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
                 <QrCode className="h-6 w-6" />
               </span>
               {loading ? (
                 <Skeleton className="h-6 w-28 rounded-full" />
               ) : (
                 <span
-                  className={`mt-0.5 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${data?.status === "connected" ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}
+                  className={`mt-0.5 flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${data?.status === "connected" ? "bg-neutral-100 text-neutral-700" : "bg-muted text-muted-foreground"}`}
                 >
                   {data?.status === "connected" && (
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-neutral-600" />
                   )}
                   {!admin
                     ? "Acesso administrativo"
@@ -259,20 +261,28 @@ export function IntegrationsScreen() {
           side="left"
           className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[480px] [&>button]:right-5 [&>button]:top-6"
         >
-          <SheetHeader className="border-b bg-card p-6 pr-12 text-left">
-            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-              <MessageCircle className="h-5 w-5" />
-            </span>
-            <SheetTitle>Configurações do WhatsApp</SheetTitle>
-            <SheetDescription>Gerencie a conexão e o dispositivo da sua empresa.</SheetDescription>
+          <SheetHeader className="border-b bg-white px-6 py-6 pr-12 text-left">
+            <p className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-neutral-400">
+              <MessageCircle className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+              Conexão por QR Code
+            </p>
+            <SheetTitle className="text-xl font-bold tracking-tight">
+              Configurações do WhatsApp
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-xs text-neutral-500">
+              Gerencie a conexão e o dispositivo da sua empresa.
+            </SheetDescription>
           </SheetHeader>
-          <div className="flex-1 space-y-6 overflow-y-auto p-6">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-[#f6f6f7] p-5">
             <section
-              className="space-y-4 rounded-2xl border bg-card p-5"
+              className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5"
               aria-label="Dados da conexão"
             >
-              <h3 className="text-sm font-semibold">Detalhes da conexão</h3>
-              <dl className="space-y-4 text-sm">
+              <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                <Link2 className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                Detalhes da conexão
+              </h3>
+              <dl className="grid gap-4 border-t border-neutral-100 pt-4 text-xs sm:grid-cols-2">
                 {[
                   ["Empresa", tenant.name],
                   ["Tipo de conexão", "QR Code · não oficial"],
@@ -296,7 +306,7 @@ export function IntegrationsScreen() {
             )}
             <Button
               variant="outline"
-              className="w-full rounded-full"
+              className="h-9 w-full rounded-xl bg-white text-xs shadow-none"
               aria-expanded={qrHelp}
               aria-controls="qr-connect-help"
               onClick={() => setQrHelp((v) => !v)}
@@ -325,10 +335,12 @@ export function IntegrationsScreen() {
               </div>
             )}
             {data?.status === "connected" ? (
-              <div className="space-y-3 py-8 text-center">
-                <ShieldCheck className="mx-auto h-12 w-12 text-emerald-600" />
-                <p className="font-semibold">WhatsApp conectado!</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="space-y-2 rounded-2xl border border-neutral-200/80 bg-white p-5">
+                <p className="flex items-center gap-2 text-[15px] font-bold">
+                  <CheckCircle2 className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                  WhatsApp conectado!
+                </p>
+                <p className="text-xs text-muted-foreground">
                   As novas mensagens de texto chegarão à central.
                 </p>
               </div>
@@ -366,7 +378,7 @@ export function IntegrationsScreen() {
                     : "O código será atualizado automaticamente enquanto a conexão estiver ativa."}
                 </p>
                 <Button
-                  variant="outline"
+                  className="h-10 w-full rounded-xl bg-[#fb982b] text-xs font-semibold text-neutral-950 shadow-none hover:bg-[#ed8c20]"
                   disabled={busy || !data?.enabled}
                   onClick={() => void act("connect")}
                 >
@@ -383,11 +395,11 @@ export function IntegrationsScreen() {
                 : "Somente administradores podem visualizar este código. Não compartilhe seu QR Code."}
             </p>
           </div>
-          <div className="border-t bg-card p-5">
+          <div className="border-t bg-white p-4 sm:px-5">
             {data?.status === "connected" ? (
               <Button
                 variant="outline"
-                className="w-full rounded-full text-destructive"
+                className="h-10 w-full rounded-xl bg-white text-xs text-destructive shadow-none"
                 disabled={busy}
                 onClick={() => setConfirm(true)}
               >

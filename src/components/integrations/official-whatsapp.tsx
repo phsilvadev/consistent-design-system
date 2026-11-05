@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   MessageCircle,
+  KeyRound,
+  ListChecks,
+  Radio,
   ShieldCheck,
   CircleHelp,
   Loader2,
@@ -167,14 +170,14 @@ export function OfficialWhatsApp() {
     <>
       <article className="flex min-h-72 flex-col rounded-[32px] bg-card p-6 shadow-[0_4px_24px_-4px_rgba(24,32,55,0.07)]">
         <div className="mb-5 flex items-start justify-between gap-2">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-500">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
             <MessageCircle className="h-6 w-6" />
           </span>
           {loading ? (
-            <Skeleton className="h-6 w-28 rounded-full" />
+            <Skeleton className="h-6 w-28 rounded-xl" />
           ) : (
             <span
-              className={`mt-0.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${data?.status === "receiving" ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"}`}
+              className={`mt-0.5 rounded-xl px-2.5 py-1 text-[11px] font-medium ${data?.status === "receiving" ? "bg-neutral-100 text-neutral-700" : "bg-muted text-muted-foreground"}`}
             >
               {!admin
                 ? "Acesso administrativo"
@@ -192,7 +195,7 @@ export function OfficialWhatsApp() {
         <div className="mt-auto pt-6">
           <Button
             variant="outline"
-            className="h-10 w-full rounded-full font-normal"
+            className="h-10 w-full rounded-xl font-normal"
             disabled={!admin}
             onClick={() => changeOpen(true)}
           >
@@ -203,40 +206,47 @@ export function OfficialWhatsApp() {
       <Sheet open={open && admin} onOpenChange={changeOpen}>
         <SheetContent
           side="left"
-          className={`flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 transition-[max-width] duration-300 ${data?.has_token ? "sm:max-w-[960px]" : "sm:max-w-[640px]"} [&>button]:right-6 [&>button]:top-7`}
+          className={`flex h-dvh w-full flex-col gap-0 overflow-hidden bg-white p-0 transition-[max-width] duration-300 ${data?.has_token ? "sm:max-w-[960px]" : "sm:max-w-[640px]"} [&>button]:right-6 [&>button]:top-7`}
         >
-          <SheetHeader className="border-b bg-card p-7 pr-14 text-left">
-            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-500">
-              <MessageCircle className="h-6 w-6" />
-            </span>
-            <SheetTitle>WhatsApp Business oficial</SheetTitle>
-            <SheetDescription>
+          <SheetHeader className="border-b bg-white px-6 py-6 pr-14 text-left sm:px-7 sm:pr-16">
+            <p className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.1em] text-neutral-400">
+              <MessageCircle className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+              Conexão oficial
+            </p>
+            <SheetTitle className="text-xl font-bold tracking-tight">
+              WhatsApp Business oficial
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-xs text-neutral-500">
               Cadastre os dados da Meta e valide a conexão da sua empresa.
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col" autoComplete="off">
-            <div className="flex-1 space-y-5 overflow-y-auto p-6 sm:p-7">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[#f6f6f7] p-5 sm:px-6">
               {loading ? (
                 <Skeleton className="h-64 rounded-2xl" />
               ) : (
                 <>
-                  <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-4">
+                  <div className="flex items-center justify-between gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4">
                     <div>
                       <p className="text-xs text-muted-foreground">Empresa</p>
                       <p className="mt-1 text-sm font-semibold">{tenant.name}</p>
                     </div>
-                    <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                    <span className="rounded-xl bg-muted px-3 py-1 text-xs text-muted-foreground">
                       {data ? labels[data.status] : "Indisponível"}
                     </span>
                   </div>
                   {data?.has_token && (
                     <section
                       aria-label="Ativação do canal"
-                      className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6"
+                      className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <h3 className="text-sm font-semibold">
+                          <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                            <ListChecks
+                              className="h-4 w-4 shrink-0 text-neutral-600"
+                              strokeWidth={1.7}
+                            />
                             Etapas para colocar o canal em operação
                           </h3>
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -289,7 +299,7 @@ export function OfficialWhatsApp() {
                           <div key={String(title)} className="rounded-xl border p-4">
                             <p className="flex items-center gap-2 text-xs font-medium">
                               <span
-                                className={`h-2 w-2 shrink-0 rounded-full ${ok ? "bg-emerald-500" : "bg-amber-400"}`}
+                                className={`h-2 w-2 shrink-0 rounded-xl ${ok ? "bg-neutral-500" : "bg-neutral-300"}`}
                               />
                               {title}
                             </p>
@@ -332,7 +342,7 @@ export function OfficialWhatsApp() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="w-full rounded-full"
+                            className="w-full rounded-xl"
                             disabled={
                               busy ||
                               !data.diagnostics.app_confirmed ||
@@ -360,7 +370,7 @@ export function OfficialWhatsApp() {
                           <Button
                             type="button"
                             variant="outline"
-                            className="mt-auto w-full rounded-full"
+                            className="mt-auto w-full rounded-xl"
                             disabled={
                               busy ||
                               !data.diagnostics.app_confirmed ||
@@ -375,7 +385,7 @@ export function OfficialWhatsApp() {
                         </div>
                       </div>
                       {!data.platform_app_configured && (
-                        <p className="text-xs leading-relaxed text-amber-800">
+                        <p className="text-xs leading-relaxed text-neutral-500">
                           O suporte precisa configurar App ID e App Secret da plataforma para
                           confirmar o aplicativo e liberar as ações de ativação.
                         </p>
@@ -389,11 +399,14 @@ export function OfficialWhatsApp() {
                     </section>
                   )}
                   <section
-                    className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6"
+                    className="space-y-5 rounded-2xl border border-neutral-200/80 bg-white p-5"
                     aria-label="Credenciais da Meta"
                   >
                     <div>
-                      <h3 className="text-sm font-semibold">Dados da conexão</h3>
+                      <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                        <KeyRound className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                        Dados da conexão
+                      </h3>
                       <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                         Encontre os identificadores e o token na configuração da API do seu
                         aplicativo na Meta.
@@ -468,14 +481,14 @@ export function OfficialWhatsApp() {
                         Ao alterar os identificadores, informe um novo token.
                       </p>
                     </div>
-                    <div className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-xs leading-relaxed text-emerald-900">
+                    <div className="flex items-start gap-2 rounded-xl bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600">
                       <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />O token fica protegido por
                       criptografia e não será exibido novamente. Apenas administradores desta
                       empresa podem atualizar a conexão.
                     </div>
                   </section>
                   {data?.display_phone_number && (
-                    <div className="grid gap-3 rounded-2xl border bg-card p-4 text-xs sm:grid-cols-2">
+                    <div className="grid gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 text-xs sm:grid-cols-2">
                       <div>
                         <p className="text-muted-foreground">Número validado</p>
                         <p className="mt-1 font-medium">{data.display_phone_number}</p>
@@ -486,8 +499,11 @@ export function OfficialWhatsApp() {
                       </div>
                     </div>
                   )}
-                  <section className="space-y-3 rounded-2xl border bg-card p-5">
-                    <h3 className="text-sm font-semibold">Recebimento de mensagens</h3>
+                  <section className="space-y-3 rounded-2xl border border-neutral-200/80 bg-white p-5">
+                    <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                      <Radio className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                      Recebimento de mensagens
+                    </h3>
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       Depois de validar as credenciais, o aplicativo da Meta precisa estar inscrito
                       no webhook da plataforma. Validar o token não ativa essa inscrição
@@ -512,7 +528,7 @@ export function OfficialWhatsApp() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full rounded-full"
+                    className="w-full rounded-xl"
                     aria-expanded={help}
                     aria-controls="official-connect-help"
                     onClick={() => setHelp((v) => !v)}
@@ -523,7 +539,7 @@ export function OfficialWhatsApp() {
                   {help && (
                     <ol
                       id="official-connect-help"
-                      className="space-y-4 rounded-2xl border bg-card p-5"
+                      className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5"
                     >
                       {[
                         [
@@ -544,7 +560,7 @@ export function OfficialWhatsApp() {
                         ],
                       ].map(([title, text], i) => (
                         <li key={title} className="flex gap-3">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-600">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-xs font-semibold text-neutral-600">
                             {i + 1}
                           </span>
                           <div>
@@ -560,7 +576,7 @@ export function OfficialWhatsApp() {
                   {data && !data.enabled && (
                     <p
                       role="status"
-                      className="rounded-xl bg-amber-50 p-3 text-xs leading-relaxed text-amber-900"
+                      className="rounded-xl bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600"
                     >
                       O armazenamento seguro de tokens ainda precisa ser ativado pela plataforma. O
                       salvamento ficará bloqueado até essa configuração.
@@ -590,15 +606,15 @@ export function OfficialWhatsApp() {
                 </div>
               )}
               {success && (
-                <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
+                <p role="status" className="rounded-xl bg-neutral-50 p-3 text-sm text-neutral-600">
                   {success}
                 </p>
               )}
             </div>
-            <div className="flex flex-wrap gap-3 border-t bg-card p-5">
+            <div className="flex flex-wrap gap-3 border-t bg-white p-4 sm:px-6">
               <Button
                 type="submit"
-                className="min-w-40 flex-1 rounded-full"
+                className="min-w-40 flex-1 rounded-xl bg-[#fb982b] font-semibold text-neutral-950 shadow-none hover:bg-[#ed8c20]"
                 disabled={busy || loading || !data?.enabled}
               >
                 {busy ? (
@@ -612,7 +628,7 @@ export function OfficialWhatsApp() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="rounded-full text-destructive"
+                  className="rounded-xl text-destructive"
                   disabled={busy}
                   onClick={() => setConfirm(true)}
                 >
@@ -623,7 +639,7 @@ export function OfficialWhatsApp() {
               <Button
                 type="button"
                 variant="outline"
-                className="rounded-full"
+                className="rounded-xl"
                 disabled={busy}
                 onClick={() => changeOpen(false)}
               >

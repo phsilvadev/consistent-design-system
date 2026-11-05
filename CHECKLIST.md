@@ -371,3 +371,8 @@ Validado: lint/build e E2E da prévia aprovados, sem chamadas de integração e 
 - [x] Adicionar ícones monocromáticos e organizar Produtos/Clientes em colunas com divisória, status inferior e botão de sincronização.
 
 Validado: lint/build e E2E da prévia aprovados. Em desktop, Produtos/Clientes lado a lado; em mobile, empilhados. Capturas da tela validada simulada e detalhe da sincronização geradas. Ícones em cinza sem fundos coloridos e ação laranja preservada. Nenhum backend alterado.
+
+### Padronização visual dos painéis WhatsApp
+- [x] Aplicar cards compactos, ícones em cinza e ação principal laranja aos painéis oficial/QR, preservando integrações e gerando prints.
+
+Validado: lint/build e 3 E2E dos painéis aprovados. Mantidos formulário/segurança/expansão oficial, registro e inscrição com confirmação, pareamento, expiração e desconexão QR; layouts mobile sem overflow. Prints oficial e QR atualizados com dados de teste. Backend inalterado.
