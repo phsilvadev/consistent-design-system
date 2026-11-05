@@ -977,7 +977,11 @@ export function AtendimentoScreen() {
               <div className="space-y-4 border-b bg-muted/10 p-5">
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span className="rounded-full border bg-background px-2.5 py-1">
-                    {selected.channel === "whatsapp" ? "WhatsApp" : "Canal manual"}
+                    {selected.channel === "whatsapp_qr"
+                      ? "WhatsApp · QR Code"
+                      : selected.channel === "whatsapp"
+                        ? "WhatsApp"
+                        : "Canal manual"}
                   </span>
                   <span className="flex items-center gap-1.5">
                     <Phone className="h-3 w-3" />+{selected.customer.phone}

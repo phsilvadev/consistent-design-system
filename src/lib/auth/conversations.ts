@@ -36,7 +36,7 @@ const conversationSchema = z.object({
   assigned_user: personSchema.nullable(),
   subject: z.string(),
   status: z.enum(conversationStatuses),
-  channel: z.enum(["manual", "whatsapp"]),
+  channel: z.enum(["manual", "whatsapp", "whatsapp_qr"]),
   created_at: z.number(),
   updated_at: z.number(),
   closed_at: z.number().nullable(),

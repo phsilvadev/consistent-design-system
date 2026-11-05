@@ -320,3 +320,11 @@ Decisão adotada: WhatsApp operacional e ERP pertencem ao painel de cada distrib
 - [x] Aceitar canal WhatsApp e mensagens recebidas no contrato e histórico, com teste integrado e print.
 
 Validação: 89 Vitest, lint/build e 1 E2E com backend real/SQLite temporário aprovados para webhook assinado→central, incluindo reentrega sem duplicidade. Envio ainda não implementado: composer preserva aviso de registro local. Fila, mídias, status e conexão Meta real continuam pendentes no checklist backend.
+
+### Execução atual — Integrações e WhatsApp QR
+- [x] Substituir status fictícios por consulta real do backend e controles administrativos de QR Code.
+- [x] Validar testes/print desktop e mobile.
+
+Cards adaptados à referência: grupos de canais/gestão, cantos 32px, sombra suave, ícone circular pastel, status no topo e botões pill na base. Validação: 92 Vitest, lint/typecheck/build e E2E da página com backend real/SQLite temporário e do ciclo do modal com provedor simulado aprovados; regressão do webhook oficial aprovada. Pareamento com celular real e ativação do gateway na hospedagem permanecem pendentes no backend. Sem status de conexão inventados nem Docker.
+
+E2E opt-in adicional: API/BFF/navegador integrados a gateway Baileys real geraram QR real e confirmaram desconexão; print real do modal e novos prints dos cards desktop/mobile. Nenhum celular foi pareado.

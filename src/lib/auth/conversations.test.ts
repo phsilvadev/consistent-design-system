@@ -106,6 +106,6 @@ it("aceita atendimento e mensagem recebidos do WhatsApp", async () => {
   ).toBe("whatsapp");
   expect(
     (await conversationsApi.messages(conversationFixture.company_id, conversationFixture.id))
-      .items[0].kind,
+      .items[0]?.kind,
   ).toBe("whatsapp_inbound");
 });

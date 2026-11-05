@@ -4,6 +4,9 @@ import { SESSION_COOKIE } from "@/lib/auth/contracts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
+  "integrations/whatsapp-qr": ["GET"],
+  "integrations/whatsapp-qr/connect": ["POST"],
+  "integrations/whatsapp-qr/disconnect": ["POST"],
   "auth/register": ["POST"],
   "auth/login": ["POST"],
   "auth/logout": ["POST"],

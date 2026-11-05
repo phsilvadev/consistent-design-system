@@ -138,3 +138,9 @@ O WhatsApp operacional pertence a cada distribuidora, junto de sua integração 
 ## WhatsApp recebido na central
 
 A central aceita `channel=whatsapp` e mensagens `whatsapp_inbound` autenticadas pelo webhook do backend, com identificação do cliente e leitura individual. A criação/reutilização do atendimento ocorre no backend. O composer permanece registro manual local; envio real, credenciais/tela de conexão Meta, mídias, status de entrega e IA continuam pendentes. Consulte o README/checklist do backend para configurar secrets e vínculo oficial do número.
+
+## Integrações do cliente
+
+A página Integrações consulta a API `/integrations/whatsapp-qr` pelo BFF e permite ao administrador iniciar o pareamento, acompanhar QR temporário/status e confirmar desconexão. O token do gateway e o ID da sessão são tratados exclusivamente no backend. Cada resposta é validada contra a empresa autenticada; falha remove o QR da tela. Conta sem serviço configurado exibe ativação pendente. GestãoClick/API e onboarding Meta simplificado continuam pendentes; não são exibidos como conectados. O transporte de saída ainda não foi implementado. Configure/inicie `whatsapp-bridge` no repositório backend; não há Docker obrigatório.
+
+O teste opt-in `QR_GATEWAY_LIVE=1 npx playwright test e2e/qr-gateway-live.spec.ts` exige gateway real privado e variáveis do backend correspondentes. Ele gera QR e desconecta sem parear celular; não usa conta real nem valida recebimento real. Foi executado com sucesso nesta entrega. A suíte padrão não depende da rede WhatsApp.
