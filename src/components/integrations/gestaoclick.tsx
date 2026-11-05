@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boxes, LockKeyhole, Loader2, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useTenant } from "@/lib/tenant/provider";
 import { gestaoClick, type GestaoClickConfiguration } from "@/lib/auth/gestaoclick";
 import { Button } from "@/components/ui/button";
@@ -267,6 +268,12 @@ export function GestaoClickCard() {
                   )}
                 </>
               )}
+              <Link
+                href={`/${tenant.id}/integracoes/previa-gestaoclick`}
+                className="block rounded-xl border border-dashed p-4 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Ver prévia das próximas etapas →
+              </Link>
               {error && (
                 <div role="alert" className="space-y-3 rounded-xl bg-destructive/5 p-3 text-sm">
                   <p>{error}</p>

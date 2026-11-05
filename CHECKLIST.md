@@ -351,3 +351,8 @@ Validação: 95 Vitest, lint/build/typecheck e 3 E2E aprovados. E2E de credencia
 - [x] Card/aside de cadastro, edição e remoção com dados reais da API e segredos não retornados; testes e print validados.
 
 Validação direcionada: 2 Vitest, lint/typecheck/build e 1 E2E com API real/SQLite temporário aprovados (cadastro, reload, segredos vazios, manutenção/edição, remoção confirmada e mobile). Backend validado com 3 Pytest específicos. Prints usam dados de teste; sem chamadas ERP/OpenAI ou Docker. Status Credenciais cadastradas não representa conexão validada.
+
+### Prévia frontend GestãoClick
+- [x] Criar prévia isolada após cadastro, com teste de conexão e sincronização simulados, sem novos endpoints ou mudanças no backend; gerar print.
+
+Validação: lint/build e 1 E2E aprovados, incluindo bloqueio inicial da sincronização, avanço das etapas locais, nenhuma chamada às APIs de integração e layout mobile sem overflow. Prints desktop/inicial/validado/mobile gerados. Rota protegida própria /[tenant]/integracoes/previa-gestaoclick, acessível pelo link no painel GestãoClick. Somente frontend; nenhum backend alterado e nenhuma tarefa de integração real concluída.

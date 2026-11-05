@@ -160,3 +160,7 @@ Validar token/número e inscrever WABA não comprovam que o webhook global/campo
 ## Cadastro GestãoClick
 
 Em Integrações → GestãoClick ERP, o admin abre um aside esquerdo e cadastra endereço base da API, Access Token e Secret Access Token. Respostas do backend não incluem os segredos; inputs password são limpos após envio/fechamento, sem localStorage/sessionStorage. Campos vazios mantêm o valor salvo quando a URL é a mesma. Trocar a URL exige ambos os tokens; remoção com confirmação apaga somente a configuração local. Status Credenciais cadastradas indica armazenamento, não validação de acesso/sincronização. Teste do fluxo real com SQLite temporário: `npx playwright test e2e/gestaoclick.spec.ts`.
+
+### Prévia visual das próximas etapas GestãoClick
+
+O link **Ver prévia das próximas etapas** no painel GestãoClick abre `/[tenant]/integracoes/previa-gestaoclick`. É uma demonstração isolada no frontend com credenciais cadastradas, teste de acesso, loja, permissões, sincronização e histórico. Botões simulam resultados em memória e não acessam APIs de integração ou ERP. A autenticação do workspace permanece existente. Nenhuma validação/sincronização real foi adicionada ao backend.
