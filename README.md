@@ -109,3 +109,6 @@ Validação adicional: 71 testes Vitest aprovados e 6 E2E com FastAPI/SQLite rea
 
 ### Edição de usuários
 Em Configurações → Equipe, a ação Editar permite alterar nome, e-mail, perfil e ativação por meio do backend autenticado. O formulário abre em modal por padrão e oferece Tela cheia e Barra lateral pelo seletor no cabeçalho. A preferência fica neste navegador e os campos são preservados ao alternar. Mudanças de permissões/e-mail/ativação encerram as sessões do usuário editado. A API deve oferecer `PATCH /api/v1/users/{user_id}` conforme documentado no backend.
+
+### Configurações da empresa
+Em Configurações → Empresa, membros consultam os dados cadastrais; administradores editam nome fantasia, razão social, CNPJ, contato, endereço e horários semanais com fuso. A aba usa GET/PATCH `/api/v1/company/settings` da API autenticada, confirma o vínculo da empresa retornada e não envia company_id no formulário. Inclui carregamento, tentativa novamente, descarte de alterações, validação e confirmação em modal com fundo desfocado. Atualize o backend e execute `alembic upgrade head` antes de usar. Os horários ficam apenas cadastrados; não ativam atendimento automático. Teste integrado: `e2e/company-settings.spec.ts`, com backend real e SQLite temporário, sem Docker.

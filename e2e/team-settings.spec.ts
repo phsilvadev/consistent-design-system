@@ -37,7 +37,8 @@ test("Equipe vem primeiro, conta usuários reais e atualiza após cadastro", asy
   const categories = page.getByRole("tablist", { name: "Categorias de configurações" });
   const tabs = categories.getByRole("tab");
   await expect(tabs.nth(0)).toContainText("Equipe");
-  await expect(tabs.nth(1)).toHaveText("Aparência");
+  await expect(tabs.nth(1)).toHaveText("Empresa");
+  await expect(tabs.nth(2)).toHaveText("Aparência");
   await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
   await expect(page.getByLabel("Quantidade de usuários: 4")).toHaveText("4");
   await expect(page.getByText("Ana Souza", { exact: true })).toBeVisible();
@@ -153,7 +154,7 @@ test("Equipe vem primeiro, conta usuários reais e atualiza após cadastro", asy
     .toBe(true);
   await editor.getByRole("button", { name: "Cancelar", exact: true }).click();
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await tabs.nth(1).click();
+  await categories.getByRole("tab", { name: "Aparência", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Estilo da interface" })).toBeVisible();
   await expect(page.getByLabel("Quantidade de usuários: 5")).toHaveText("5");
   await tabs.nth(0).click();

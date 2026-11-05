@@ -1,5 +1,6 @@
 "use client";
 
+import { CompanySettings } from "@/components/settings/company-settings";
 import { TeamSettings } from "@/components/settings/team-settings";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { CustomAppearanceEditor } from "@/components/appearance/custom-appearance-editor";
@@ -9,6 +10,7 @@ import Link from "next/link";
 import { useTenant, useTenantAppearance } from "@/lib/tenant/provider";
 import { useState, type ReactNode } from "react";
 import {
+  Building2,
   ArrowUpRight,
   Plus,
   ShoppingCart,
@@ -255,7 +257,7 @@ export function Dashboard({
             <div>
               <h1 className="text-2xl font-semibold">Configurações</h1>
               <p className="mt-2 text-sm text-muted-foreground">
-                Gerencie a equipe da empresa e personalize a interface.
+                Gerencie sua empresa, os acessos da equipe e a aparência do sistema.
               </p>
             </div>
             <Tabs defaultValue="team" className="w-full">
@@ -279,6 +281,13 @@ export function Dashboard({
                   )}
                 </TabsTrigger>
                 <TabsTrigger
+                  value="company"
+                  className="mr-6 gap-2 rounded-none border-b-2 border-transparent px-1 pb-4 pt-2 text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                >
+                  <Building2 className="h-4 w-4" />
+                  Empresa
+                </TabsTrigger>
+                <TabsTrigger
                   value="appearance"
                   className="gap-2 rounded-none border-b-2 border-transparent px-1 pb-4 pt-2 text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                 >
@@ -287,6 +296,9 @@ export function Dashboard({
               </TabsList>
               <TabsContent value="team" className="mt-0 pt-7">
                 <TeamSettings onCountChange={setTeamCount} />
+              </TabsContent>
+              <TabsContent value="company" className="mt-0 pt-7">
+                <CompanySettings />
               </TabsContent>
               <TabsContent value="appearance" className="mt-0 pt-8">
                 <section className="max-w-[960px] space-y-6">

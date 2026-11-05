@@ -53,3 +53,10 @@ Validação: build e lint aprovados; E2E de Equipe aprovado com erro de e-mail d
 Validação: 72 testes Vitest, 22 Pytest, build e lint aprovados. E2E validou salvamento real, persistência, contagem, troca de formatos sem perda de dados, dimensões desktop/mobile e preferência no navegador. Prints dos três modos gerados. Nenhum Docker executado.
 
 - [x] Alinhar o seletor de formato com o botão fechar no cabeçalho do editor. Build e E2E aprovados; print atualizado.
+
+## Configurações da empresa
+- [x] Persistir cadastro e horários por empresa, migration, edição administrativa, validação e auditoria.
+- [x] Implementar aba Empresa com estados de carregamento, erro, somente leitura e confirmação.
+- [x] Testar API, isolamento, permissões e formulário; gerar prints desktop/mobile.
+
+Validação: 75 testes Vitest, 36 testes Pytest, build e lint aprovados. Os seis cenários E2E existentes passaram; cenário Empresa aprovado após corrigir o seletor do alerta no teste (conflito com anunciador do Next). Verificados salvamento/recarga, descarte, erro de CNPJ, horários, somente leitura, isolamento e layout mobile. Migration downgrade/upgrade testada com empresa existente. Prints com dados exclusivamente de teste. Nenhum Docker executado.
