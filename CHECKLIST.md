@@ -361,3 +361,8 @@ Validação: lint/build e 1 E2E aprovados, incluindo bloqueio inicial da sincron
 - [x] Simplificar para branco/cinza, remover ícones decorativos e substituir cards por seções com divisórias; gerar novos prints.
 
 Validado: lint/build e E2E da prévia aprovados. Simulações e bloqueio inicial preservados, sem chamadas às APIs de integração; mobile sem overflow. Prints neutros desktop/mobile gerados. Alteração somente no frontend.
+
+### Nova proposta visual GestãoClick
+- [x] Cards compactos com fundo suave, títulos fortes e ação principal laranja; preservar prévia local e gerar print.
+
+Validado: lint/build e E2E da prévia aprovados, sem chamadas de integração e mobile sem overflow. Prints compactos desktop/mobile gerados. Backend inalterado.

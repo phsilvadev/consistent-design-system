@@ -65,49 +65,43 @@ export function GestaoClickPreview() {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="flex h-dvh w-full flex-col gap-0 overflow-hidden bg-white p-0 text-neutral-900 sm:max-w-[800px] [&>button]:right-7 [&>button]:top-7 [&>button]:focus:ring-neutral-300"
+          className="flex h-dvh w-full flex-col gap-0 overflow-hidden bg-white p-0 text-neutral-900 sm:max-w-[740px] [&>button]:right-7 [&>button]:top-7 [&>button]:focus:ring-neutral-300"
         >
-          <SheetHeader className="border-b border-neutral-200 bg-white px-6 py-7 pr-14 text-left sm:px-9 sm:pr-16">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-xs font-semibold tracking-tight">
-                GC
-              </span>
-              <span className="text-[11px] text-neutral-400">Integrações / ERP</span>
-            </div>
-            <SheetTitle className="text-xl font-semibold tracking-tight">GestãoClick</SheetTitle>
-            <SheetDescription className="mt-1 text-sm text-neutral-500">
-              Gerencie a conexão e os dados da sua empresa.
-            </SheetDescription>
-            <p className="pt-3 text-[11px] leading-relaxed text-neutral-400">
-              Prévia visual · dados de exemplo e ações simuladas.
+          <SheetHeader className="border-b border-neutral-200 bg-white px-6 py-6 pr-14 text-left sm:px-7 sm:pr-16">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.12em] text-neutral-400">
+              Integração ERP
             </p>
+            <SheetTitle className="text-[24px] font-bold tracking-tight">GestãoClick</SheetTitle>
+            <SheetDescription className="mt-1 text-sm text-neutral-500">
+              Acesso, loja e sincronização em um só lugar.
+            </SheetDescription>
           </SheetHeader>
-          <div className="flex-1 overflow-y-auto bg-white px-6 sm:px-9">
-            <section className="border-b border-neutral-200 py-6">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <h3 className="text-sm font-semibold">Credenciais</h3>
+          <div className="flex-1 space-y-4 overflow-y-auto bg-[#f6f6f7] p-5 sm:px-6">
+            <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+              <div className="mb-4 flex items-center justify-between gap-4">
+                <h3 className="text-[15px] font-bold tracking-tight">Credenciais</h3>
                 <span className="flex items-center gap-2 text-[11px] text-neutral-500">
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
                   Cadastradas
                 </span>
               </div>
-              <dl className="space-y-3 text-xs">
-                <div className="flex flex-wrap justify-between gap-2">
+              <dl className="grid gap-4 border-t border-neutral-100 pt-3 text-xs sm:grid-cols-2">
+                <div className="space-y-1.5">
                   <dt className="text-neutral-500">Endereço da API</dt>
                   <dd className="break-all font-mono text-[11px] text-neutral-700">
                     https://servidor-exemplo/api
                   </dd>
                 </div>
-                <div className="flex flex-wrap justify-between gap-2">
+                <div className="space-y-1.5">
                   <dt className="text-neutral-500">Dados de acesso</dt>
                   <dd className="text-neutral-700">Access Token e Secret protegidos</dd>
                 </div>
               </dl>
             </section>
-            <section className="space-y-5 border-b border-neutral-200 py-6">
+            <section className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-sm font-semibold">Conexão</h3>
+                  <h3 className="text-[15px] font-bold tracking-tight">Validar acesso</h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
                     Valide o acesso antes de sincronizar os dados.
                   </p>
@@ -143,7 +137,7 @@ export function GestaoClickPreview() {
               <Button
                 type="button"
                 variant="outline"
-                className="h-9 rounded-lg border-neutral-200 bg-white text-xs font-medium text-neutral-700 shadow-none hover:bg-neutral-50"
+                className={`h-10 rounded-xl px-5 text-xs font-semibold shadow-none ${tested ? "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50" : "border-transparent bg-[#fb982b] text-neutral-950 hover:bg-[#ed8c20]"}`}
                 disabled={busy}
                 onClick={() => simulate("test")}
               >
@@ -151,14 +145,14 @@ export function GestaoClickPreview() {
                 {tested ? "Testar novamente" : "Testar conexão"}
               </Button>
             </section>
-            <section className="space-y-5 border-b border-neutral-200 py-6">
+            <section className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
               <div>
-                <h3 className="text-sm font-semibold">Sincronização</h3>
+                <h3 className="text-[15px] font-bold tracking-tight">Dados para sincronizar</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
                   Selecione os dados que deseja importar do GestãoClick.
                 </p>
               </div>
-              <div className="divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
+              <div className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
                 {[
                   { title: "Produtos", text: "Catálogo, códigos e unidades" },
                   { title: "Clientes", text: "Cadastros e contatos comerciais" },
@@ -188,7 +182,7 @@ export function GestaoClickPreview() {
                 </p>
                 <Button
                   type="button"
-                  className="h-9 rounded-lg bg-neutral-900 px-4 text-xs font-medium text-white shadow-none hover:bg-neutral-800 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:opacity-100"
+                  className="h-10 rounded-xl bg-[#fb982b] px-5 text-xs font-semibold text-neutral-950 shadow-none hover:bg-[#ed8c20] disabled:bg-neutral-100 disabled:text-neutral-400 disabled:opacity-100"
                   disabled={!tested || busy}
                   onClick={() => simulate("sync")}
                 >
@@ -196,21 +190,17 @@ export function GestaoClickPreview() {
                 </Button>
               </div>
             </section>
-            <section className="space-y-3 py-6">
-              <h3 className="text-sm font-semibold">Atividade recente</h3>
+            <section className="space-y-2 rounded-2xl border border-neutral-200/80 bg-white p-5">
+              <h3 className="text-[15px] font-bold tracking-tight">Atividade recente</h3>
               <p className="text-xs leading-relaxed text-neutral-500">
                 {synced
                   ? "Simulação de sincronização concluída. Nenhum registro real foi alterado."
                   : "O histórico aparecerá aqui após as primeiras sincronizações."}
               </p>
-              <p className="pt-1 text-[11px] leading-relaxed text-neutral-400">
-                Preços e estoque dependem da loja selecionada. A integração real será
-                disponibilizada em uma próxima etapa.
-              </p>
             </section>
           </div>
-          <div className="flex items-center justify-between gap-3 border-t border-neutral-200 bg-white px-6 py-4 sm:px-9">
-            <span className="text-[11px] text-neutral-400">Somente prévia visual</span>
+          <div className="flex items-center justify-between gap-3 border-t border-neutral-200 bg-white px-6 py-4 sm:px-7">
+            <span className="text-[11px] text-neutral-400">Prévia visual · ações simuladas</span>
             <Button
               variant="outline"
               className="h-9 rounded-lg border-neutral-200 bg-white text-xs text-neutral-700 shadow-none hover:bg-neutral-50"
