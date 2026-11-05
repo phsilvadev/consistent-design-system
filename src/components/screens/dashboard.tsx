@@ -248,7 +248,9 @@ export function Dashboard({
             {tenant.name} · Minha empresa
           </Link>
           <span className="hidden text-muted-foreground sm:inline">
-            Dados comerciais demonstrativos
+            {activePage === "Atendimentos"
+              ? "Central de atendimento · canal manual"
+              : "Dados comerciais demonstrativos"}
           </span>
           <LogoutButton />
         </div>

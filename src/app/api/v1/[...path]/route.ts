@@ -11,12 +11,19 @@ const allowed: Record<string, string[]> = {
   users: ["GET", "POST"],
   "company/settings": ["GET", "PATCH"],
   "company/subscription": ["GET"],
+  conversations: ["GET", "POST"],
+  "conversations/assignees": ["GET"],
 };
 async function forward(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const joined = path.join("/");
   const methods =
-    allowed[joined] || (/^users\/[a-f0-9-]{36}$/.test(joined) ? ["GET", "PATCH"] : []);
+    allowed[joined] ||
+    (/^users\/[a-f0-9-]{36}$/.test(joined) || /^conversations\/[a-f0-9-]{36}$/.test(joined)
+      ? ["GET", "PATCH"]
+      : /^conversations\/[a-f0-9-]{36}\/messages$/.test(joined)
+        ? ["GET", "POST"]
+        : []);
   if (!methods.includes(request.method))
     return NextResponse.json({ detail: "Recurso indisponível." }, { status: 404 });
   if (request.method !== "GET") {
@@ -64,14 +71,17 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
       }
       body = Buffer.concat(chunks).toString("utf8");
     }
-    const upstream = await fetch(backendUrl(`/api/v1/${path.map(encodeURIComponent).join("/")}`), {
-      method: request.method,
-      headers,
-      cache: "no-store",
-      redirect: "error",
-      signal: AbortSignal.timeout(15000),
-      ...(body === undefined ? {} : { body }),
-    });
+    const upstream = await fetch(
+      backendUrl(`/api/v1/${path.map(encodeURIComponent).join("/")}${request.nextUrl.search}`),
+      {
+        method: request.method,
+        headers,
+        cache: "no-store",
+        redirect: "error",
+        signal: AbortSignal.timeout(15000),
+        ...(body === undefined ? {} : { body }),
+      },
+    );
     const response = new NextResponse(upstream.status === 204 ? null : await upstream.text(), {
       status: upstream.status,
       headers: {

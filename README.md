@@ -118,3 +118,8 @@ A aba Configurações → Planos consome `GET /api/v1/company/subscription`: pla
 
 ### Checklist mestre
 O [CHECKLIST.md](CHECKLIST.md) foi ampliado para os 14 módulos do [prompt mestre](docs/PROMPT_MESTRE.md), incluindo fases futuras, bloqueios e evidências. O [histórico anterior](docs/DEVELOPMENT_HISTORY.md) foi preservado. Os dois repositórios mantêm o mesmo roadmap mestre; itens de fases futuras permanecem pendentes, mesmo que existam telas demonstrativas.
+
+### Central manual — Fase 02
+A rota Atendimentos consome a API real: criação manual com cliente identificado por telefone, funil com busca e filtro Meus atendimentos, alteração de status por seletor ou arraste, atribuição, painel de histórico, notas internas, encerramento e reabertura. Há skeleton, estado vazio, erros/retry e paginação. A abertura mantém `?atendimento=UUID` para recarregar o mesmo registro; o backend confere tenant/propriedade em cada consulta. Textos não são armazenados em localStorage e são renderizados escapados.
+
+O canal é manual: a ação Registrar salva na central e não envia mensagens ao cliente. IA e WhatsApp permanecem nas fases seguintes. O protótipo local anterior está preservado em `src/components/atendimentos/demo/`, sem importação pelas rotas. Atualize o backend e aplique `alembic upgrade head`. A migration não cria conversas de exemplo. E2E: `e2e/conversations.spec.ts`, com FastAPI real e SQLite temporário; cobre criação, responsável, histórico após reload, fechamento/reabertura, busca, permissões, isolamento e mobile.

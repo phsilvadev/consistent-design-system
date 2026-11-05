@@ -1,25 +1,34 @@
 "use client";
-import { useState, type DragEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type DragEvent } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Bot,
-  CheckCheck,
-  ChevronRight,
-  Clock3,
-  GripVertical,
-  Headphones,
-  MessageCircle,
   Plus,
   Search,
-  Send,
+  RefreshCw,
   UserRound,
+  Clock3,
+  Send,
+  Phone,
+  ArrowRight,
+  Loader2,
+  GripVertical,
+  Headphones,
 } from "lucide-react";
+import { useTenant } from "@/lib/tenant/provider";
+import { ApiError } from "@/lib/auth/client";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  conversationsApi,
+  conversationStatuses,
+  statusLabels,
+  conversationTime,
+  type Conversation,
+  type ConversationMessage,
+  type ConversationStatus,
+  type Assignee,
+} from "@/lib/auth/conversations";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -27,143 +36,326 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { useTenant } from "@/lib/tenant/provider";
-import { initialAtendimentos, stages, type Atendimento, type StageId } from "./atendimento-data";
-
-const currency = (value: number) =>
-  value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const now = () => new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+const colors: Record<ConversationStatus, string> = {
+  new: "bg-slate-400",
+  ai: "bg-violet-500",
+  human: "bg-orange-500",
+  awaiting_customer: "bg-amber-400",
+  quoting: "bg-blue-500",
+  converted: "bg-emerald-500",
+  closed: "bg-slate-600",
+};
+const descriptions: Partial<Record<ConversationStatus, string>> = {
+  new: "Aguardando um responsável",
+  human: "Conversas acompanhadas pela equipe",
+  awaiting_customer: "Aguardando o retorno do cliente",
+  quoting: "Solicitações em elaboração de proposta",
+  converted: "Conversão informada pela equipe",
+  closed: "Histórico de atendimentos concluídos",
+};
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+function errorText(error: unknown) {
+  return error instanceof Error ? error.message : "Não foi possível concluir a ação.";
+}
 export function AtendimentoScreen() {
-  const { user } = useTenant();
-  const [items, setItems] = useState(initialAtendimentos);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const { tenant, user } = useTenant();
+  const router = useRouter();
+  const manager = user.role === "admin" || user.role === "supervisor";
+  const [items, setItems] = useState<Conversation[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
-  const [handler, setHandler] = useState("all");
-  const [drafts, setDrafts] = useState<Record<number, string>>({});
-  const [dragOver, setDragOver] = useState<StageId | null>(null);
+  const [mine, setMine] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const [pageBusy, setPageBusy] = useState(false);
+  const [assignees, setAssignees] = useState<Assignee[]>([]);
+  const [rosterError, setRosterError] = useState("");
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [createBusy, setCreateBusy] = useState(false);
+  const createRequest = useRef<{ signature: string; id: string } | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const activeSelection = useRef<string | null>(null);
+  const listGeneration = useRef(0);
+  const [selected, setSelected] = useState<Conversation | null>(null);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [nextBefore, setNextBefore] = useState<number | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [detailRevision, setDetailRevision] = useState(0);
+  const [detailBusy, setDetailBusy] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [kind, setKind] = useState<"manual_outbound" | "internal_note">("manual_outbound");
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const messageRequest = useRef<{ signature: string; id: string } | null>(null);
   const [announcement, setAnnouncement] = useState("");
-  const selected = items.find((item) => item.id === selectedId);
-  const selectedStage = stages.find((stage) => stage.id === selected?.stage);
-  const visible = items.filter(
-    (item) =>
-      `${item.name} ${item.company} ${item.product}`
-        .toLocaleLowerCase("pt-BR")
-        .includes(search.toLocaleLowerCase("pt-BR")) &&
-      (handler === "all" ||
-        (handler === "mine"
-          ? item.handler === "human" && item.owner === user.name
-          : item.handler === "ai")),
-  );
-  const active = items.filter((item) => item.stage !== "finalizado");
-  const draft = selected ? (drafts[selected.id] ?? "") : "";
-  const canSend = selected?.handler === "human" && selected.stage !== "finalizado";
-
-  function openConversation(item: Atendimento) {
-    setSelectedId(item.id);
-    setItems((current) =>
-      current.map((entry) => (entry.id === item.id ? { ...entry, unread: 0 } : entry)),
-    );
-  }
-  function move(id: number, stage: StageId) {
-    const target = stages.find((entry) => entry.id === stage);
-    const item = items.find((entry) => entry.id === id);
-    if (!target || !item || item.stage === stage) return;
-    const time = now();
-    setItems((current) =>
-      current.map((entry) =>
-        entry.id === id
-          ? {
-              ...entry,
-              stage,
-              ...(stage === "vendedor"
-                ? { handler: "human" as const, owner: user.name }
-                : stage === "ia"
-                  ? { handler: "ai" as const, owner: "Assistente IA" }
-                  : {}),
-              messages: [
-                ...entry.messages,
-                {
-                  author: "system",
-                  text:
-                    stage === "vendedor"
-                      ? `${user.name} assumiu o atendimento. A IA está pausada nesta conversa.`
-                      : stage === "ia"
-                        ? `${user.name} devolveu o atendimento à IA.`
-                        : `Atendimento movido para ${target.name}.`,
-                  time,
-                },
-              ],
-            }
-          : entry,
-      ),
-    );
-    setAnnouncement(`${item.name}: atendimento movido para ${target.name}.`);
-  }
-  function assume() {
-    if (!selected || selected.stage === "finalizado") return;
-    move(selected.id, "vendedor");
-  }
-  function resumeAI() {
-    if (selected) move(selected.id, "ia");
-  }
-  function drop(event: DragEvent, stage: StageId) {
-    event.preventDefault();
-    const id = Number(event.dataTransfer.getData("text/plain"));
-    move(id, stage);
-    setDragOver(null);
-  }
-  function send(event: FormEvent) {
-    event.preventDefault();
-    if (!selected || !canSend || !draft.trim()) return;
-    const text = draft.trim();
-    const time = now();
-    setItems((current) =>
-      current.map((item) =>
-        item.id === selected.id
-          ? { ...item, time, messages: [...item.messages, { author: "human", text, time }] }
-          : item,
-      ),
-    );
-    setDrafts((current) => ({ ...current, [selected.id]: "" }));
-  }
-  function create(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "").trim();
-    if (!name) return;
-    const id = Math.max(0, ...items.map((item) => item.id)) + 1;
-    const time = now();
-    const item: Atendimento = {
-      id,
-      name,
-      company: String(data.get("company") ?? "").trim() || "Novo cliente",
-      phone: String(data.get("phone") ?? "").trim() || "Não informado",
-      stage: "ia",
-      handler: "ai",
-      owner: "Assistente IA",
-      product: "A identificar",
-      quantity: "A confirmar",
-      delivery: "A confirmar",
-      value: 0,
-      time,
-      unread: 0,
-      messages: [
-        {
-          author: "ai",
-          text: `Olá, ${name}! Como posso ajudar? Conte qual produto você procura e a quantidade de que precisa.`,
-          time,
-        },
-      ],
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("atendimento");
+    if (id && /^[a-f0-9-]{36}$/.test(id)) {
+      activeSelection.current = id;
+      setSelectedId(id);
+    }
+  }, [tenant.id]);
+  useEffect(() => {
+    const timeout = setTimeout(() => setSearch(query), 250);
+    return () => clearTimeout(timeout);
+  }, [query]);
+  useEffect(() => {
+    let alive = true;
+    listGeneration.current += 1;
+    setLoading(true);
+    setError("");
+    conversationsApi
+      .list(tenant.id, { q: search, mine })
+      .then((result) => {
+        if (alive) {
+          setItems(result.items);
+          setTotal(result.total);
+        }
+      })
+      .catch((e) => {
+        if (alive) {
+          setItems([]);
+          setTotal(0);
+          setError(errorText(e));
+        }
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
     };
-    setItems((current) => [...current, item]);
-    setCreating(false);
-    setSearch("");
-    setHandler("all");
+  }, [tenant.id, search, mine, revision]);
+  useEffect(() => {
+    let alive = true;
+    setRosterError("");
+    conversationsApi
+      .assignees()
+      .then((result) => {
+        if (alive) setAssignees(result);
+      })
+      .catch((e) => {
+        if (alive) setRosterError(errorText(e));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [tenant.id, revision]);
+  useEffect(() => {
+    let alive = true;
+    if (!selectedId) {
+      setSelected(null);
+      setMessages([]);
+      setDetailError("");
+      return;
+    }
+    setDetailLoading(true);
+    setDetailError("");
+    Promise.all([
+      conversationsApi.get(tenant.id, selectedId),
+      conversationsApi.messages(tenant.id, selectedId),
+    ])
+      .then(([conversation, history]) => {
+        if (alive) {
+          setSelected(conversation);
+          setMessages(history.items);
+          setNextBefore(history.next_before);
+        }
+      })
+      .catch((e) => {
+        if (alive) {
+          setSelected(null);
+          setMessages([]);
+          setDetailError(errorText(e));
+        }
+      })
+      .finally(() => {
+        if (alive) setDetailLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [tenant.id, selectedId, detailRevision]);
+  function open(id: string | null) {
+    activeSelection.current = id;
     setSelectedId(id);
-    setAnnouncement(`Atendimento de ${name} iniciado na etapa de IA.`);
+    setDraft("");
+    messageRequest.current = null;
+    const url = new URL(window.location.href);
+    if (id) url.searchParams.set("atendimento", id);
+    else url.searchParams.delete("atendimento");
+    window.history.replaceState(null, "", url.pathname + url.search);
   }
-
+  function failed(e: unknown) {
+    if (e instanceof ApiError && e.status === 401) {
+      router.replace("/login");
+      router.refresh();
+    }
+    if (e instanceof ApiError && e.status === 409) {
+      setDetailRevision((v) => v + 1);
+    }
+    return errorText(e);
+  }
+  async function create(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (createBusy) return;
+    const form = new FormData(event.currentTarget);
+    const body = {
+      customer_name: String(form.get("name") ?? "").trim(),
+      customer_phone: String(form.get("phone") ?? "").trim(),
+      customer_business: String(form.get("business") ?? "").trim(),
+      subject: String(form.get("subject") ?? "").trim(),
+      assigned_user_id: String(form.get("owner") ?? "") || null,
+      initial_message: String(form.get("initial") ?? "").trim(),
+    };
+    const signature = JSON.stringify(body);
+    if (createRequest.current?.signature !== signature)
+      createRequest.current = { signature, id: crypto.randomUUID() };
+    setCreateBusy(true);
+    setCreateError("");
+    try {
+      const result = await conversationsApi.create(tenant.id, {
+        ...body,
+        request_id: createRequest.current.id,
+      });
+      setCreating(false);
+      createRequest.current = null;
+      setQuery("");
+      setMine(false);
+      setRevision((v) => v + 1);
+      open(result.id);
+      setAnnouncement("Atendimento criado com sucesso.");
+    } catch (e) {
+      setCreateError(failed(e));
+    } finally {
+      setCreateBusy(false);
+    }
+  }
+  async function change(
+    conversation: Conversation,
+    changes: { status?: ConversationStatus; assigned_user_id?: string | null },
+  ) {
+    if (detailBusy) return;
+    setDetailBusy(true);
+    setDetailError("");
+    setError("");
+    try {
+      const saved = await conversationsApi.update(tenant.id, conversation.id, {
+        version: conversation.version,
+        ...changes,
+      });
+      setItems((current) => current.map((item) => (item.id === saved.id ? saved : item)));
+      if (selectedId === saved.id) {
+        setSelected(saved);
+        setDetailRevision((v) => v + 1);
+      }
+      setRevision((v) => v + 1);
+      setAnnouncement("Atendimento atualizado.");
+    } catch (e) {
+      const text = failed(e);
+      if (selectedId === conversation.id) setDetailError(text);
+      else setError(text);
+    } finally {
+      setDetailBusy(false);
+    }
+  }
+  async function record(event: FormEvent) {
+    event.preventDefault();
+    if (!selected || detailBusy || !draft.trim()) return;
+    const body = draft.trim();
+    const signature = JSON.stringify({ id: selected.id, body, kind });
+    if (messageRequest.current?.signature !== signature)
+      messageRequest.current = { signature, id: crypto.randomUUID() };
+    setDetailBusy(true);
+    setDetailError("");
+    try {
+      const result = await conversationsApi.record(tenant.id, selected.id, {
+        request_id: messageRequest.current.id,
+        version: selected.version,
+        kind,
+        body,
+      });
+      setSelected(result.conversation);
+      setMessages((current) =>
+        current.some((m) => m.id === result.message.id) ? current : [...current, result.message],
+      );
+      setDraft("");
+      messageRequest.current = null;
+      setRevision((v) => v + 1);
+      setAnnouncement("Mensagem registrada na central.");
+    } catch (e) {
+      setDetailError(failed(e));
+    } finally {
+      setDetailBusy(false);
+    }
+  }
+  async function older() {
+    if (!selected || !nextBefore || historyBusy) return;
+    setHistoryBusy(true);
+    try {
+      const result = await conversationsApi.messages(tenant.id, selected.id, nextBefore);
+      if (activeSelection.current !== selected.id) return;
+      setMessages((current) => [
+        ...result.items,
+        ...current.filter((m) => !result.items.some((older) => older.id === m.id)),
+      ]);
+      setNextBefore(result.next_before);
+    } catch (e) {
+      setDetailError(failed(e));
+    } finally {
+      setHistoryBusy(false);
+    }
+  }
+  async function more() {
+    if (pageBusy) return;
+    setPageBusy(true);
+    const generation = listGeneration.current;
+    try {
+      const result = await conversationsApi.list(tenant.id, {
+        q: search,
+        mine,
+        offset: items.length,
+      });
+      if (generation !== listGeneration.current) return;
+      setItems((current) => [
+        ...current,
+        ...result.items.filter((item) => !current.some((old) => old.id === item.id)),
+      ]);
+      setTotal(result.total);
+    } catch (e) {
+      setError(failed(e));
+    } finally {
+      setPageBusy(false);
+    }
+  }
+  const canManageSelected = !!selected && (manager || selected.assigned_user?.id === user.id);
+  const canRecord =
+    canManageSelected && selected && !["closed", "converted", "ai"].includes(selected.status);
+  const stages = conversationStatuses.filter(
+    (status) => status !== "ai" || items.some((item) => item.status === "ai"),
+  );
+  function drop(event: DragEvent, status: ConversationStatus) {
+    event.preventDefault();
+    const conv = items.find((item) => item.id === event.dataTransfer.getData("text/plain"));
+    if (conv && status !== "ai" && status !== conv.status) void change(conv, { status });
+  }
   return (
     <main className="min-w-0 space-y-6 p-4 md:p-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
@@ -173,417 +365,572 @@ export function AtendimentoScreen() {
           </p>
           <h1 className="mt-2 text-2xl font-semibold">Atendimentos</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            A IA faz o primeiro contato. Acompanhe cada oportunidade e assuma a conversa quando
-            precisar.
+            Organize as solicitações e acompanhe o histórico de cada cliente.
           </p>
         </div>
-        <button
-          onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground"
+        <Button
+          className="rounded-full px-5"
+          disabled={!!rosterError}
+          onClick={() => {
+            setCreating(true);
+            setCreateError("");
+            createRequest.current = null;
+          }}
         >
-          <Plus className="h-4 w-4" /> Novo atendimento
-        </button>
+          <Plus className="h-4 w-4" />
+          Novo atendimento
+        </Button>
       </header>
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumo do funil">
-        {[
-          {
-            label: "Em andamento",
-            value: active.length,
-            icon: MessageCircle,
-            color: "bg-blue-50 text-blue-600",
-          },
-          {
-            label: "Conduzidos pela IA",
-            value: active.filter((item) => item.handler === "ai").length,
-            icon: Bot,
-            color: "bg-violet-50 text-violet-600",
-          },
-          {
-            label: "Com a equipe",
-            value: active.filter((item) => item.handler === "human").length,
-            icon: Headphones,
-            color: "bg-orange-50 text-orange-600",
-          },
-          {
-            label: "Finalizados",
-            value: items.filter((item) => item.stage === "finalizado").length,
-            icon: CheckCheck,
-            color: "bg-emerald-50 text-emerald-600",
-          },
-        ].map(({ label, value, icon: Icon, color }) => (
-          <article
-            key={label}
-            className="flex items-center justify-between rounded-2xl border bg-card p-5"
-          >
-            <div>
-              <h2 className="text-xs font-medium text-muted-foreground">{label}</h2>
-              <p className="mt-2 text-3xl font-semibold tabular-nums">{value}</p>
-            </div>
-            <span className={`rounded-xl p-3 ${color}`}>
-              <Icon className="h-5 w-5" />
-            </span>
-          </article>
-        ))}
-      </section>
-      <section className="space-y-4" aria-label="Funil de atendimento">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="font-semibold">Funil de atendimento</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Arraste os cards entre as etapas ou abra uma conversa para acompanhar o histórico.
-            </p>
-          </div>
-          <div className="flex w-full flex-wrap gap-3 sm:w-auto">
-            <div className="relative min-w-48 flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <input
-                aria-label="Buscar atendimento"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Cliente, empresa ou produto"
-                className="h-10 w-full rounded-xl border bg-card pl-9 pr-3 text-xs sm:w-64"
-              />
-            </div>
-            <select
-              aria-label="Filtrar responsável"
-              value={handler}
-              onChange={(event) => setHandler(event.target.value)}
-              className="h-10 rounded-xl border bg-card px-3 text-xs"
-            >
-              <option value="all">Todos os responsáveis</option>
-              <option value="ai">Assistente IA</option>
-              <option value="mine">Meus atendimentos</option>
-            </select>
-          </div>
+      <div role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
+      <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
+        <div className="relative min-w-48 flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            aria-label="Buscar atendimento"
+            placeholder="Buscar cliente, telefone ou assunto…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="h-10 rounded-xl pl-9"
+            maxLength={100}
+          />
         </div>
+        <select
+          aria-label="Filtrar responsável"
+          value={mine ? "mine" : "all"}
+          onChange={(e) => setMine(e.target.value === "mine")}
+          className="h-10 rounded-xl border bg-background px-3 text-sm"
+        >
+          <option value="all">Todos os disponíveis</option>
+          <option value="mine">Meus atendimentos</option>
+        </select>
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-xl"
+          aria-label="Atualizar atendimentos"
+          disabled={loading}
+          onClick={() => {
+            setRevision((v) => v + 1);
+            if (selectedId) setDetailRevision((v) => v + 1);
+          }}
+        >
+          <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {loading ? "Carregando…" : `${items.length} de ${total} atendimentos`}
+        </span>
+      </div>
+      {(error || rosterError) && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/20 p-4 text-sm"
+        >
+          <p className="text-destructive">{error || rosterError}</p>
+          <Button variant="outline" onClick={() => setRevision((v) => v + 1)}>
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+      {loading ? (
+        <div
+          role="status"
+          aria-label="Carregando atendimentos"
+          className="grid gap-4 sm:grid-cols-3"
+        >
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-64 rounded-2xl" />
+          ))}
+        </div>
+      ) : items.length === 0 && !error ? (
+        <section className="rounded-2xl border border-dashed bg-card px-6 py-16 text-center">
+          <Headphones className="mx-auto mb-4 h-9 w-9 text-muted-foreground" />
+          <h2 className="text-base font-semibold">
+            {search || mine
+              ? "Nenhum atendimento encontrado"
+              : "Sua central está pronta para começar"}
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {search || mine
+              ? "Tente outro filtro ou busca."
+              : "Crie o primeiro atendimento para registrar uma solicitação."}
+          </p>
+        </section>
+      ) : (
         <div className="overflow-x-auto pb-4">
-          <div className="grid min-w-[1380px] grid-cols-5 gap-4">
-            {stages.map((stage) => {
-              const cards = visible.filter((item) => item.stage === stage.id);
-              return (
-                <section
-                  key={stage.id}
-                  aria-label={stage.name}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setDragOver(stage.id);
-                  }}
-                  onDragLeave={(event) => {
-                    if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-                      setDragOver(null);
-                  }}
-                  onDrop={(event) => drop(event, stage.id)}
-                  className={`min-h-[420px] rounded-2xl border bg-muted/35 transition-colors ${dragOver === stage.id ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border"}`}
-                >
-                  <div className="space-y-2 border-b p-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`h-2.5 w-2.5 rounded-full ${stage.color}`} />
-                      <h3 className="flex-1 text-xs font-bold">{stage.name}</h3>
-                      <span className="rounded-md bg-background px-2 py-1 text-xs font-semibold tabular-nums">
-                        {cards.length}
-                      </span>
-                    </div>
-                    <p className="min-h-8 text-[11px] leading-4 text-muted-foreground">
-                      {stage.description}
-                    </p>
-                    <p className="text-xs font-semibold tabular-nums">
-                      {currency(cards.reduce((sum, item) => sum + item.value, 0))}
-                    </p>
+          <div className="flex min-w-max items-start gap-4">
+            {stages.map((stage) => (
+              <section
+                role="region"
+                aria-label={statusLabels[stage]}
+                key={stage}
+                className="w-[286px] rounded-2xl border bg-muted/20 p-3"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => drop(e, stage)}
+              >
+                <div className="mb-4 px-1 pt-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-2 w-2 rounded-full ${colors[stage]}`} />
+                    <h2 className="flex-1 text-sm font-semibold">{statusLabels[stage]}</h2>
+                    <span className="rounded-md bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                      {items.filter((item) => item.status === stage).length}
+                    </span>
                   </div>
-                  <div className="space-y-3 p-3">
-                    {cards.map((item) => (
-                      <article
+                  <p className="mt-2 text-[11px] text-muted-foreground">{descriptions[stage]}</p>
+                </div>
+                <div className="space-y-3">
+                  {items
+                    .filter((item) => item.status === stage)
+                    .map((item) => (
+                      <button
+                        type="button"
                         key={item.id}
-                        draggable
-                        onDragStart={(event) => {
-                          event.dataTransfer.setData("text/plain", String(item.id));
-                          event.dataTransfer.effectAllowed = "move";
-                        }}
-                        onDragEnd={() => setDragOver(null)}
-                        className="rounded-xl border bg-card shadow-sm transition-shadow hover:shadow-md"
+                        draggable={!detailBusy && (manager || item.assigned_user?.id === user.id)}
+                        onDragStart={(e) => e.dataTransfer.setData("text/plain", item.id)}
+                        onClick={() => open(item.id)}
+                        aria-label={`Abrir atendimento de ${item.customer.name}: ${item.subject}`}
+                        className="w-full rounded-xl border bg-card p-4 text-left shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <button
-                          onClick={() => openConversation(item)}
-                          aria-label={`Abrir atendimento de ${item.name}`}
-                          className="w-full rounded-xl p-4 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          <div className="mb-3 flex items-center gap-2">
-                            <span
-                              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${item.handler === "ai" ? "bg-violet-50 text-violet-700" : "bg-orange-50 text-orange-700"}`}
-                            >
-                              {item.handler === "ai" ? (
-                                <Bot className="h-3 w-3" />
-                              ) : (
-                                <UserRound className="h-3 w-3" />
-                              )}
-                              {item.handler === "ai" ? "Assistente IA" : "Equipe comercial"}
-                            </span>
-                            <GripVertical className="ml-auto h-3.5 w-3.5 text-muted-foreground/60" />
-                          </div>
-                          <h4 className="text-sm font-semibold">{item.name}</h4>
-                          <p className="mt-1 text-[11px] text-muted-foreground">{item.company}</p>
-                          <div className="my-3 rounded-lg bg-muted/50 p-2.5">
-                            <p className="text-xs font-medium">{item.product}</p>
-                            <p className="mt-1 text-[11px] text-muted-foreground">
-                              {item.quantity}
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold">
+                            {initials(item.customer.name)}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-semibold">{item.customer.name}</p>
+                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                              {item.customer.business_name || item.customer.phone}
                             </p>
                           </div>
-                          <p className="line-clamp-2 min-h-8 text-[11px] leading-4 text-muted-foreground">
-                            {
-                              item.messages.filter((message) => message.author !== "system").at(-1)
-                                ?.text
-                            }
-                          </p>
-                          <div className="mt-3 flex items-center justify-between border-t pt-3">
-                            <span className="text-xs font-semibold">
-                              {item.value ? currency(item.value) : "Valor a definir"}
+                          <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+                        </div>
+                        <p className="my-4 line-clamp-2 text-sm leading-5">{item.subject}</p>
+                        <div className="flex items-center justify-between gap-2 border-t pt-3 text-[10px] text-muted-foreground">
+                          <span className="flex min-w-0 items-center gap-1.5">
+                            <UserRound className="h-3 w-3 shrink-0" />
+                            <span className="truncate">
+                              {item.assigned_user?.name ?? "Sem responsável"}
                             </span>
-                            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                              <Clock3 className="h-3 w-3" />
-                              {item.time}
-                              {item.unread > 0 && (
-                                <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 font-bold text-primary-foreground">
-                                  {item.unread}
-                                </span>
-                              )}
-                            </span>
-                          </div>
-                        </button>
-                      </article>
+                          </span>
+                          <span className="shrink-0">Manual</span>
+                        </div>
+                        <p className="mt-2 flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Clock3 className="h-3 w-3" />
+                          {conversationTime(item.updated_at)}
+                        </p>
+                      </button>
                     ))}
-                    {!cards.length && (
-                      <p className="rounded-xl border border-dashed p-5 text-center text-xs leading-5 text-muted-foreground">
-                        {search || handler !== "all"
-                          ? "Nenhum atendimento com esses filtros."
-                          : "Nenhum atendimento nesta etapa."}
-                      </p>
-                    )}
-                  </div>
-                </section>
-              );
-            })}
+                  {!items.some((item) => item.status === stage) && (
+                    <p className="rounded-xl border border-dashed p-6 text-center text-xs text-muted-foreground">
+                      Nenhum atendimento nesta etapa
+                    </p>
+                  )}
+                </div>
+              </section>
+            ))}
           </div>
         </div>
-      </section>
-      <p className="sr-only" role="status" aria-live="polite">
-        {announcement}
-      </p>
-      <Sheet
-        open={!!selected}
-        onOpenChange={(open) => {
-          if (!open) setSelectedId(null);
+      )}
+      {items.length < total && !loading && (
+        <Button
+          variant="outline"
+          className="rounded-xl"
+          disabled={pageBusy}
+          onClick={() => void more()}
+        >
+          {pageBusy ? "Carregando…" : "Carregar mais atendimentos"}
+        </Button>
+      )}
+      <Dialog
+        open={creating}
+        onOpenChange={(next) => {
+          if (!createBusy) setCreating(next);
         }}
       >
-        <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-          {selected && (
-            <>
-              <SheetHeader className="border-b p-5 pr-12 text-left">
-                <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
-                  <MessageCircle className="h-4 w-4 text-emerald-600" />
-                  WhatsApp
-                  <ChevronRight className="h-3 w-3" />
-                  {selectedStage?.name}
+        <DialogContent className="max-h-[90svh] overflow-y-auto rounded-2xl sm:rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Novo atendimento</DialogTitle>
+            <DialogDescription>Registre uma solicitação no canal manual.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={create} className="space-y-4">
+            <fieldset disabled={createBusy} className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="conversation-name" className="text-sm font-medium">
+                  Nome do cliente
+                </label>
+                <Input
+                  id="conversation-name"
+                  name="name"
+                  minLength={2}
+                  maxLength={120}
+                  required
+                  className="h-11 rounded-xl"
+                  placeholder="Nome completo ou contato"
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="conversation-phone" className="text-sm font-medium">
+                    Telefone
+                  </label>
+                  <Input
+                    id="conversation-phone"
+                    name="phone"
+                    type="tel"
+                    minLength={10}
+                    maxLength={24}
+                    required
+                    className="h-11 rounded-xl"
+                    placeholder="(11) 99999-0000"
+                  />
                 </div>
-                <SheetTitle>{selected.name}</SheetTitle>
-                <SheetDescription>
-                  {selected.company} · {selected.phone}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="shrink-0 space-y-4 border-b bg-muted/20 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <span
-                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold ${selected.handler === "ai" ? "bg-violet-100 text-violet-700" : "bg-orange-100 text-orange-700"}`}
-                  >
-                    {selected.handler === "ai" ? (
-                      <Bot className="h-4 w-4" />
-                    ) : (
-                      <UserRound className="h-4 w-4" />
-                    )}
-                    {selected.stage === "finalizado"
-                      ? "Atendimento finalizado"
-                      : selected.handler === "ai"
-                        ? "IA conduzindo a conversa"
-                        : `${selected.owner} · IA pausada`}
-                  </span>
-                  {selected.stage !== "finalizado" &&
-                    (selected.handler === "ai" ? (
-                      <button
-                        onClick={assume}
-                        className="rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground"
-                      >
-                        Assumir atendimento
-                      </button>
-                    ) : (
-                      <button
-                        onClick={resumeAI}
-                        className="rounded-lg border bg-card px-3 py-2 text-xs font-semibold"
-                      >
-                        Devolver à IA
-                      </button>
+                <div className="space-y-2">
+                  <label htmlFor="conversation-business" className="text-sm font-medium">
+                    Empresa do cliente
+                  </label>
+                  <Input
+                    id="conversation-business"
+                    name="business"
+                    maxLength={160}
+                    className="h-11 rounded-xl"
+                    placeholder="Opcional"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="conversation-subject" className="text-sm font-medium">
+                  Assunto
+                </label>
+                <Input
+                  id="conversation-subject"
+                  name="subject"
+                  required
+                  minLength={2}
+                  maxLength={200}
+                  className="h-11 rounded-xl"
+                  placeholder="Produto ou solicitação do cliente"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="conversation-owner" className="text-sm font-medium">
+                  Responsável
+                </label>
+                <select
+                  id="conversation-owner"
+                  name="owner"
+                  defaultValue={user.id}
+                  className="h-11 w-full rounded-xl border bg-background px-3 text-sm"
+                >
+                  {manager && <option value="">Sem responsável</option>}
+                  {assignees
+                    .filter((member) => manager || member.id === user.id)
+                    .map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name}
+                        {member.id === user.id ? " (você)" : ""}
+                      </option>
                     ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="conversation-initial" className="text-sm font-medium">
+                  Relato do cliente
+                </label>
+                <textarea
+                  id="conversation-initial"
+                  name="initial"
+                  maxLength={4000}
+                  rows={3}
+                  className="w-full resize-y rounded-xl border bg-background p-3 text-sm"
+                  placeholder="Registre o que o cliente solicitou (opcional)"
+                />
+              </div>
+            </fieldset>
+            {createError && (
+              <p
+                role="alert"
+                className="rounded-xl border border-destructive/20 p-3 text-sm text-destructive"
+              >
+                {createError}
+              </p>
+            )}
+            <p className="text-xs leading-5 text-muted-foreground">
+              O telefone identifica o cliente nesta empresa. Se já existir, o cadastro será
+              reutilizado. Nenhuma mensagem será enviada pelo WhatsApp.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                disabled={createBusy}
+                onClick={() => setCreating(false)}
+              >
+                Cancelar
+              </Button>
+              <Button className="rounded-xl" type="submit" disabled={createBusy}>
+                {createBusy ? "Criando…" : "Criar atendimento"}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <Sheet
+        open={selectedId !== null}
+        onOpenChange={(next) => {
+          if (!next && !detailBusy) open(null);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="flex h-[100svh] flex-col gap-0 p-0"
+          style={{ width: "min(48rem, 100vw)", maxWidth: "none" }}
+        >
+          <SheetHeader className="border-b p-6 pr-12 text-left">
+            <SheetTitle>{selected?.customer.name ?? "Atendimento"}</SheetTitle>
+            <SheetDescription>
+              {selected?.subject ?? "Histórico e detalhes do atendimento"}
+            </SheetDescription>
+          </SheetHeader>
+          {detailLoading ? (
+            <div role="status" aria-label="Carregando histórico" className="space-y-5 p-6">
+              <Skeleton className="h-20 rounded-xl" />
+              <Skeleton className="h-32 rounded-xl" />
+            </div>
+          ) : selected ? (
+            <>
+              <div className="space-y-4 border-b bg-muted/10 p-5">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <span className="rounded-full border bg-background px-2.5 py-1">
+                    Canal manual
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Phone className="h-3 w-3" />+{selected.customer.phone}
+                  </span>
+                  {selected.customer.business_name && (
+                    <span>{selected.customer.business_name}</span>
+                  )}
                 </div>
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <p className="text-muted-foreground">Produto identificado</p>
-                    <p className="mt-1 font-medium">{selected.product}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Quantidade</p>
-                    <p className="mt-1 font-medium">{selected.quantity}</p>
-                  </div>
-                  <div>
-                    <p className="text-muted-foreground">Recebimento</p>
-                    <p className="mt-1 font-medium">{selected.delivery}</p>
-                  </div>
-                  <div>
-                    <label htmlFor="conversation-stage" className="text-muted-foreground">
-                      Etapa do atendimento
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <label htmlFor="detail-status" className="text-xs font-medium">
+                      Status do atendimento
                     </label>
                     <select
-                      id="conversation-stage"
-                      value={selected.stage}
-                      onChange={(event) => move(selected.id, event.target.value as StageId)}
-                      className="mt-1 block w-full rounded-md border bg-card p-1.5 text-xs"
+                      id="detail-status"
+                      value={selected.status}
+                      disabled={detailBusy || !canManageSelected}
+                      onChange={(e) =>
+                        void change(selected, { status: e.target.value as ConversationStatus })
+                      }
+                      className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
                     >
-                      {stages.map((stage) => (
-                        <option key={stage.id} value={stage.id}>
-                          {stage.name}
+                      {conversationStatuses.map((status) => (
+                        <option
+                          key={status}
+                          value={status}
+                          disabled={
+                            status === "ai" ||
+                            (selected.status === "closed" && !["closed", "human"].includes(status))
+                          }
+                        >
+                          {statusLabels[status]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="detail-owner" className="text-xs font-medium">
+                      Responsável do atendimento
+                    </label>
+                    <select
+                      id="detail-owner"
+                      value={selected.assigned_user?.id ?? ""}
+                      disabled={detailBusy || !manager || !!rosterError}
+                      onChange={(e) =>
+                        void change(selected, { assigned_user_id: e.target.value || null })
+                      }
+                      className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
+                    >
+                      <option value="">Sem responsável</option>
+                      {selected.assigned_user &&
+                        !assignees.some((member) => member.id === selected.assigned_user?.id) && (
+                          <option value={selected.assigned_user.id}>
+                            {selected.assigned_user.name} (indisponível)
+                          </option>
+                        )}
+                      {assignees.map((member) => (
+                        <option key={member.id} value={member.id}>
+                          {member.name}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
+                <div className="flex flex-wrap gap-2">
+                  {!selected.assigned_user && (
+                    <Button
+                      size="sm"
+                      className="rounded-lg"
+                      disabled={detailBusy}
+                      onClick={() =>
+                        void change(selected, { assigned_user_id: user.id, status: "human" })
+                      }
+                    >
+                      <UserRound className="h-3.5 w-3.5" />
+                      Assumir atendimento
+                    </Button>
+                  )}
+                  {canManageSelected && ["closed", "converted"].includes(selected.status) && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="rounded-lg"
+                      disabled={detailBusy}
+                      onClick={() => void change(selected, { status: "human" })}
+                    >
+                      Reabrir atendimento
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="rounded-lg"
+                    disabled={detailBusy}
+                    onClick={() => setDetailRevision((v) => v + 1)}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Atualizar histórico
+                  </Button>
+                </div>
               </div>
-              <div
-                className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-muted/30 p-5"
-                role="log"
-                aria-label="Histórico da conversa"
-              >
-                {selected.messages.map((message, index) =>
-                  message.author === "system" ? (
-                    <p
-                      key={index}
-                      className="px-4 text-center text-[10px] leading-5 text-muted-foreground"
+              <div className="min-h-0 flex-1 overflow-y-auto bg-muted/15 p-5">
+                <div role="log" aria-label="Histórico de mensagens" className="space-y-4">
+                  {nextBefore && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="mx-auto flex rounded-xl"
+                      disabled={historyBusy}
+                      onClick={() => void older()}
                     >
-                      {message.text}
-                    </p>
-                  ) : (
-                    <div
-                      key={index}
-                      className={`max-w-[88%] rounded-2xl border px-4 py-3 ${message.author === "client" ? "bg-card" : message.author === "ai" ? "ml-auto border-violet-200 bg-violet-50" : "ml-auto border-primary/20 bg-primary/10"}`}
-                    >
+                      {historyBusy ? "Carregando…" : "Mensagens anteriores"}
+                    </Button>
+                  )}
+                  {messages.map((message) =>
+                    message.kind === "system" ? (
                       <p
-                        className={`mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold ${message.author === "ai" ? "text-violet-700" : "text-muted-foreground"}`}
+                        key={message.id}
+                        className="py-1 text-center text-[11px] leading-5 text-muted-foreground"
                       >
-                        {message.author === "ai" && <Bot className="h-3 w-3" />}
-                        {message.author === "client"
-                          ? selected.name
-                          : message.author === "ai"
-                            ? "Assistente IA"
-                            : selected.owner}
+                        {message.body}
+                        <span className="ml-2 opacity-70">
+                          {conversationTime(message.created_at)}
+                        </span>
                       </p>
-                      <p className="text-sm leading-6">{message.text}</p>
-                      <p className="mt-1.5 text-right text-[10px] text-muted-foreground">
-                        {message.time}
-                      </p>
-                    </div>
-                  ),
-                )}
+                    ) : (
+                      <div
+                        key={message.id}
+                        className={`flex ${message.kind === "customer_record" ? "justify-start" : "justify-end"}`}
+                      >
+                        <div
+                          className={`max-w-[90%] rounded-2xl border p-4 sm:max-w-[80%] ${message.kind === "customer_record" ? "bg-card" : message.kind === "internal_note" ? "border-amber-200 bg-amber-50 text-amber-950" : "border-primary/15 bg-primary/10"}`}
+                        >
+                          <p className="mb-2 text-[10px] font-semibold text-muted-foreground">
+                            {message.kind === "customer_record"
+                              ? "Relato do cliente · registro manual"
+                              : message.kind === "internal_note"
+                                ? "Nota interna"
+                                : "Mensagem manual"}{" "}
+                            · {message.actor?.name ?? "Equipe"}
+                          </p>
+                          <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                            {message.body}
+                          </p>
+                          <p className="mt-2 text-right text-[10px] text-muted-foreground">
+                            {conversationTime(message.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                    ),
+                  )}
+                </div>
               </div>
-              <div className="shrink-0 border-t bg-card p-4">
-                {selected.stage === "finalizado" ? (
-                  <p className="text-center text-xs text-muted-foreground">
-                    Este atendimento foi finalizado. Altere a etapa para reabrir a conversa.
+              {detailError && (
+                <p
+                  role="alert"
+                  className="mx-5 mb-3 rounded-xl border border-destructive/20 p-3 text-xs text-destructive"
+                >
+                  {detailError}
+                </p>
+              )}
+              <form onSubmit={record} className="space-y-3 border-t p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="manual-message" className="text-xs font-medium">
+                    Registrar no histórico
+                  </label>
+                  <select
+                    aria-label="Tipo de registro"
+                    value={kind}
+                    onChange={(e) => setKind(e.target.value as typeof kind)}
+                    disabled={detailBusy || !canRecord}
+                    className="rounded-lg border bg-background px-2 py-1 text-xs"
+                  >
+                    <option value="manual_outbound">Mensagem manual</option>
+                    <option value="internal_note">Nota interna</option>
+                  </select>
+                </div>
+                <textarea
+                  id="manual-message"
+                  aria-label="Mensagem do atendimento"
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  maxLength={4000}
+                  rows={3}
+                  disabled={detailBusy || !canRecord}
+                  placeholder={
+                    canRecord
+                      ? "Escreva o registro deste atendimento…"
+                      : "Assuma ou reabra o atendimento para registrar mensagens."
+                  }
+                  className="w-full resize-none rounded-xl border bg-background p-3 text-sm disabled:opacity-50"
+                />
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="max-w-sm text-[11px] leading-5 text-muted-foreground">
+                    Salvo somente nesta central. O registro não envia mensagens ao cliente.
                   </p>
-                ) : (
-                  <>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      {selected.handler === "ai"
-                        ? "Acompanhe a IA ou assuma o atendimento para responder ao cliente."
-                        : "Você está conduzindo esta conversa. A IA permanece pausada."}
-                    </p>
-                    <form onSubmit={send} className="flex gap-2">
-                      <input
-                        aria-label="Mensagem para o cliente"
-                        value={draft}
-                        onChange={(event) =>
-                          setDrafts((current) => ({
-                            ...current,
-                            [selected.id]: event.target.value,
-                          }))
-                        }
-                        disabled={!canSend}
-                        placeholder={
-                          canSend ? "Digite sua mensagem…" : "Assuma o atendimento para responder"
-                        }
-                        className="h-11 min-w-0 flex-1 rounded-xl border bg-background px-3 text-sm disabled:opacity-60"
-                      />
-                      <button
-                        type="submit"
-                        aria-label="Enviar mensagem"
-                        disabled={!canSend || !draft.trim()}
-                        className="rounded-xl bg-primary px-4 text-primary-foreground disabled:opacity-40"
-                      >
-                        <Send className="h-4 w-4" />
-                      </button>
-                    </form>
-                  </>
-                )}
-              </div>
+                  <Button
+                    type="submit"
+                    className="rounded-xl"
+                    disabled={detailBusy || !canRecord || !draft.trim()}
+                  >
+                    {detailBusy ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4" />
+                    )}
+                    Registrar
+                  </Button>
+                </div>
+              </form>
             </>
+          ) : (
+            <div className="p-6">
+              <p role="alert" className="text-sm text-destructive">
+                {detailError || "Atendimento indisponível."}
+              </p>
+              <Button
+                variant="outline"
+                className="mt-4"
+                onClick={() => setDetailRevision((v) => v + 1)}
+              >
+                Tentar novamente
+              </Button>
+            </div>
           )}
         </SheetContent>
       </Sheet>
-      <Dialog open={creating} onOpenChange={setCreating}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo atendimento</DialogTitle>
-            <DialogDescription>
-              A conversa começa com a IA identificando o produto e a necessidade do cliente.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={create} className="space-y-4">
-            <div>
-              <label htmlFor="new-name" className="text-sm font-medium">
-                Nome do cliente
-              </label>
-              <input
-                id="new-name"
-                name="name"
-                required
-                className="mt-2 h-10 w-full rounded-lg border bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="new-company" className="text-sm font-medium">
-                Empresa
-              </label>
-              <input
-                id="new-company"
-                name="company"
-                className="mt-2 h-10 w-full rounded-lg border bg-background px-3 text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="new-phone" className="text-sm font-medium">
-                WhatsApp
-              </label>
-              <input
-                id="new-phone"
-                name="phone"
-                type="tel"
-                className="mt-2 h-10 w-full rounded-lg border bg-background px-3 text-sm"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground"
-            >
-              Iniciar com IA
-            </button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </main>
   );
 }
