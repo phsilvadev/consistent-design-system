@@ -356,3 +356,8 @@ Validação direcionada: 2 Vitest, lint/typecheck/build e 1 E2E com API real/SQL
 - [x] Criar prévia isolada após cadastro, com teste de conexão e sincronização simulados, sem novos endpoints ou mudanças no backend; gerar print.
 
 Validação: lint/build e 1 E2E aprovados, incluindo bloqueio inicial da sincronização, avanço das etapas locais, nenhuma chamada às APIs de integração e layout mobile sem overflow. Prints desktop/inicial/validado/mobile gerados. Rota protegida própria /[tenant]/integracoes/previa-gestaoclick, acessível pelo link no painel GestãoClick. Somente frontend; nenhum backend alterado e nenhuma tarefa de integração real concluída.
+
+### Ajuste visual da prévia GestãoClick
+- [x] Simplificar para branco/cinza, remover ícones decorativos e substituir cards por seções com divisórias; gerar novos prints.
+
+Validado: lint/build e E2E da prévia aprovados. Simulações e bloqueio inicial preservados, sem chamadas às APIs de integração; mobile sem overflow. Prints neutros desktop/mobile gerados. Alteração somente no frontend.

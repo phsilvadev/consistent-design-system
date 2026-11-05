@@ -18,7 +18,7 @@ test("Prévia GestãoClick simula etapas sem acessar APIs de integração", asyn
     if (request.url().includes("/api/v1/integrations/")) requests.push(request.url());
   });
   await page.goto(`/${identity.company.id}/integracoes/previa-gestaoclick`);
-  const panel = page.getByRole("dialog", { name: "GestãoClick ERP", exact: true });
+  const panel = page.getByRole("dialog", { name: "GestãoClick", exact: true });
   await expect(panel).toBeVisible();
   await expect.poll(async () => Math.round((await panel.boundingBox())?.x ?? -1)).toBe(0);
   await expect(page.getByRole("button", { name: /Sincronizar agora/ })).toBeDisabled();

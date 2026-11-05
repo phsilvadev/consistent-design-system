@@ -1,24 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Boxes,
-  Check,
-  CheckCircle2,
-  ChevronRight,
-  Clock3,
-  Database,
-  FileText,
-  History,
-  Loader2,
-  LockKeyhole,
-  Package,
-  RefreshCw,
-  ShieldCheck,
-  Store,
-  Users,
-} from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useTenant } from "@/lib/tenant/provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,141 +43,97 @@ export function GestaoClickPreview() {
         Voltar às integrações
       </Link>
       <div>
-        <h1 className="text-2xl font-bold">Integrações</h1>
+        <h1 className="text-2xl font-semibold">Integrações</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Prévia das próximas etapas do GestãoClick.
         </p>
       </div>
-      <article className="max-w-sm space-y-5 rounded-[32px] bg-card p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <span className="rounded-full bg-violet-100 p-3 text-violet-500">
-            <Boxes className="h-6 w-6" />
-          </span>
-          <span className="rounded-full bg-muted px-3 py-1 text-[11px] text-muted-foreground">
-            Credenciais cadastradas
-          </span>
+      <article className="max-w-sm space-y-4 rounded-xl border bg-white p-6">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-semibold">GestãoClick ERP</h2>
+          <span className="text-[11px] text-neutral-500">Credenciais cadastradas</span>
         </div>
-        <h2 className="text-lg font-semibold">GestãoClick ERP</h2>
-        <p className="text-sm text-muted-foreground">
-          Gerencie o acesso ao ERP e acompanhe as sincronizações.
-        </p>
-        <Button variant="outline" className="w-full rounded-full" onClick={() => setOpen(true)}>
+        <p className="text-sm text-neutral-500">Acesso ao ERP e sincronização de dados.</p>
+        <Button
+          variant="outline"
+          className="w-full rounded-lg shadow-none"
+          onClick={() => setOpen(true)}
+        >
           Configurar
         </Button>
       </article>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[840px] [&>button]:right-6 [&>button]:top-7"
+          className="flex h-dvh w-full flex-col gap-0 overflow-hidden bg-white p-0 text-neutral-900 sm:max-w-[800px] [&>button]:right-7 [&>button]:top-7 [&>button]:focus:ring-neutral-300"
         >
-          <SheetHeader className="border-b bg-card p-6 pr-14 text-left sm:px-8">
-            <div className="mb-3 flex items-center gap-3">
-              <span className="rounded-2xl bg-violet-100 p-3 text-violet-500">
-                <Boxes className="h-6 w-6" />
+          <SheetHeader className="border-b border-neutral-200 bg-white px-6 py-7 pr-14 text-left sm:px-9 sm:pr-16">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 text-xs font-semibold tracking-tight">
+                GC
               </span>
-              <span className="rounded-full border border-violet-100 bg-violet-50 px-3 py-1 text-[10px] font-semibold text-violet-600">
-                PRÉVIA INTERATIVA
-              </span>
+              <span className="text-[11px] text-neutral-400">Integrações / ERP</span>
             </div>
-            <SheetTitle className="text-xl">GestãoClick ERP</SheetTitle>
-            <SheetDescription>
-              Configure o acesso e mantenha os dados comerciais atualizados.
+            <SheetTitle className="text-xl font-semibold tracking-tight">GestãoClick</SheetTitle>
+            <SheetDescription className="mt-1 text-sm text-neutral-500">
+              Gerencie a conexão e os dados da sua empresa.
             </SheetDescription>
-          </SheetHeader>
-          <div className="flex-1 space-y-5 overflow-y-auto p-5 sm:px-8 sm:py-6">
-            <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
-              Dados demonstrativos. Os botões abaixo simulam o fluxo visual, sem consultar o ERP ou
-              alterar dados reais.
+            <p className="pt-3 text-[11px] leading-relaxed text-neutral-400">
+              Prévia visual · dados de exemplo e ações simuladas.
             </p>
-            <ol className="grid grid-cols-3 gap-2 text-[11px] sm:text-xs">
-              {[
-                ["Credenciais", true],
-                ["Validar acesso", tested],
-                ["Sincronizar", synced],
-              ].map(([title, done], i) => (
-                <li key={String(title)} className="flex items-center gap-2">
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${done ? "bg-emerald-100 text-emerald-600" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
-                  </span>
-                  <span className="font-medium">{title}</span>
-                  {i < 2 && (
-                    <ChevronRight className="ml-auto hidden h-3 w-3 text-muted-foreground sm:block" />
-                  )}
-                </li>
-              ))}
-            </ol>
-            <section className="space-y-4 rounded-2xl border bg-card p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-                    <LockKeyhole className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold">Credenciais cadastradas</h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Os dados de acesso ficam protegidos no servidor.
-                    </p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-                  Etapa concluída · exemplo
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto bg-white px-6 sm:px-9">
+            <section className="border-b border-neutral-200 py-6">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <h3 className="text-sm font-semibold">Credenciais</h3>
+                <span className="flex items-center gap-2 text-[11px] text-neutral-500">
+                  <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
+                  Cadastradas
                 </span>
               </div>
-              <div className="grid gap-4 border-t pt-4 sm:grid-cols-2">
-                {[
-                  ["Endereço da API", "https://servidor-exemplo/api"],
-                  ["Credenciais", "Access Token e Secret protegidos"],
-                ].map(([label, value]) => (
-                  <div key={label}>
-                    <p className="text-[11px] text-muted-foreground">{label}</p>
-                    <p className="mt-1 break-words text-xs font-medium">{value}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-            <section className="space-y-4 rounded-2xl border bg-card p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <span className="rounded-xl bg-violet-50 p-2.5 text-violet-500">
-                    <ShieldCheck className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <h3 className="text-sm font-semibold">Validar acesso ao ERP</h3>
-                    <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
-                      Confirme as credenciais e as permissões antes de importar informações.
-                    </p>
-                  </div>
+              <dl className="space-y-3 text-xs">
+                <div className="flex flex-wrap justify-between gap-2">
+                  <dt className="text-neutral-500">Endereço da API</dt>
+                  <dd className="break-all font-mono text-[11px] text-neutral-700">
+                    https://servidor-exemplo/api
+                  </dd>
                 </div>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-medium ${tested ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}
-                >
+                <div className="flex flex-wrap justify-between gap-2">
+                  <dt className="text-neutral-500">Dados de acesso</dt>
+                  <dd className="text-neutral-700">Access Token e Secret protegidos</dd>
+                </div>
+              </dl>
+            </section>
+            <section className="space-y-5 border-b border-neutral-200 py-6">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold">Conexão</h3>
+                  <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
+                    Valide o acesso antes de sincronizar os dados.
+                  </p>
+                </div>
+                <span className="text-[11px] text-neutral-500">
                   {tested ? "Acesso validado · simulação" : "Aguardando teste"}
                 </span>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="preview-store"
-                    className="flex items-center gap-1.5 text-xs font-medium"
-                  >
-                    <Store className="h-3.5 w-3.5" />
+              <div className="grid gap-5 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="preview-store" className="text-xs font-medium">
                     Loja utilizada
                   </label>
                   <select
                     id="preview-store"
-                    className="h-10 w-full rounded-xl border bg-background px-3 text-xs"
                     disabled={!tested}
+                    className="h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-xs text-neutral-700 disabled:bg-neutral-50 disabled:text-neutral-400"
                   >
                     <option>
                       {tested ? "Matriz · loja demonstrativa" : "Disponível após validar o acesso"}
                     </option>
                   </select>
                 </div>
-                <div className="rounded-xl bg-muted/40 p-3">
-                  <p className="text-[11px] text-muted-foreground">Permissões da integração</p>
-                  <p className="mt-1 text-xs">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium">Permissões</p>
+                  <p className="flex min-h-10 items-center text-xs leading-relaxed text-neutral-500">
                     {tested
                       ? "Consulta de produtos e clientes · exemplo"
                       : "Serão conferidas no teste de conexão"}
@@ -204,99 +143,79 @@ export function GestaoClickPreview() {
               <Button
                 type="button"
                 variant="outline"
-                className="w-full rounded-full sm:w-auto"
+                className="h-9 rounded-lg border-neutral-200 bg-white text-xs font-medium text-neutral-700 shadow-none hover:bg-neutral-50"
                 disabled={busy}
                 onClick={() => simulate("test")}
               >
-                {busy ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                )}
+                {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
                 {tested ? "Testar novamente" : "Testar conexão"}
-                <span className="ml-1 text-[10px] opacity-60">· simular</span>
               </Button>
             </section>
-            <section className="space-y-4 rounded-2xl border bg-card p-5">
-              <div className="flex items-start gap-3">
-                <span className="rounded-xl bg-blue-50 p-2.5 text-blue-500">
-                  <Database className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="text-sm font-semibold">Sincronização de dados</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Escolha o que será consultado no GestãoClick.
-                  </p>
-                </div>
+            <section className="space-y-5 border-b border-neutral-200 py-6">
+              <div>
+                <h3 className="text-sm font-semibold">Sincronização</h3>
+                <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
+                  Selecione os dados que deseja importar do GestãoClick.
+                </p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200">
                 {[
-                  { Icon: Package, title: "Produtos", text: "Catálogo, códigos e unidades" },
-                  { Icon: Users, title: "Clientes", text: "Cadastros e contatos comerciais" },
-                ].map(({ Icon, title, text }) => (
+                  { title: "Produtos", text: "Catálogo, códigos e unidades" },
+                  { title: "Clientes", text: "Cadastros e contatos comerciais" },
+                ].map(({ title, text }) => (
                   <label
                     key={title}
-                    className={`flex items-start gap-3 rounded-xl border p-3 ${tested ? "" : "opacity-60"}`}
+                    className={`flex items-center gap-3 px-4 py-3.5 ${tested ? "" : "opacity-50"}`}
                   >
                     <input
                       type="checkbox"
                       defaultChecked
                       disabled={!tested || busy}
-                      className="mt-1 accent-violet-600"
+                      className="h-3.5 w-3.5 accent-neutral-900"
                     />
-                    <Icon className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                    <span>
-                      <span className="block text-xs font-semibold">{title}</span>
-                      <span className="mt-1 block text-[11px] text-muted-foreground">{text}</span>
+                    <span className="flex flex-1 flex-wrap items-center justify-between gap-1.5">
+                      <span className="text-xs font-medium">{title}</span>
+                      <span className="text-[11px] text-neutral-500">{text}</span>
                     </span>
                   </label>
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Clock3 className="h-3.5 w-3.5" />
+                <p className="text-[11px] text-neutral-500">
                   {synced
                     ? "Simulação concluída · nenhum dado importado"
                     : "Nenhuma sincronização realizada"}
                 </p>
                 <Button
                   type="button"
-                  className="rounded-full"
+                  className="h-9 rounded-lg bg-neutral-900 px-4 text-xs font-medium text-white shadow-none hover:bg-neutral-800 disabled:bg-neutral-100 disabled:text-neutral-400 disabled:opacity-100"
                   disabled={!tested || busy}
                   onClick={() => simulate("sync")}
                 >
-                  {busy ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                  )}
-                  Sincronizar agora<span className="ml-1 text-[10px] opacity-70">· simular</span>
+                  {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}Sincronizar agora
                 </Button>
               </div>
             </section>
-            <section className="rounded-2xl border border-dashed bg-card p-4">
-              <h3 className="flex items-center gap-2 text-xs font-semibold">
-                <History className="h-4 w-4 text-muted-foreground" />
-                Histórico de sincronização
-              </h3>
-              <p className="mt-2 text-xs text-muted-foreground">
+            <section className="space-y-3 py-6">
+              <h3 className="text-sm font-semibold">Atividade recente</h3>
+              <p className="text-xs leading-relaxed text-neutral-500">
                 {synced
                   ? "Simulação de sincronização concluída. Nenhum registro real foi alterado."
                   : "O histórico aparecerá aqui após as primeiras sincronizações."}
               </p>
+              <p className="pt-1 text-[11px] leading-relaxed text-neutral-400">
+                Preços e estoque dependem da loja selecionada. A integração real será
+                disponibilizada em uma próxima etapa.
+              </p>
             </section>
-            <p className="flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground">
-              <FileText className="mt-0.5 h-4 w-4 shrink-0" />
-              Preços e estoque serão consultados por loja. A integração real ainda depende da
-              documentação OpenAPI da conta.
-            </p>
           </div>
-          <div className="flex items-center justify-between gap-3 border-t bg-card p-5 sm:px-8">
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Somente prévia visual
-            </span>
-            <Button variant="outline" className="rounded-full" onClick={() => setOpen(false)}>
+          <div className="flex items-center justify-between gap-3 border-t border-neutral-200 bg-white px-6 py-4 sm:px-9">
+            <span className="text-[11px] text-neutral-400">Somente prévia visual</span>
+            <Button
+              variant="outline"
+              className="h-9 rounded-lg border-neutral-200 bg-white text-xs text-neutral-700 shadow-none hover:bg-neutral-50"
+              onClick={() => setOpen(false)}
+            >
               Fechar prévia
             </Button>
           </div>
