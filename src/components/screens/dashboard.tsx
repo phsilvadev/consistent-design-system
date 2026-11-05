@@ -1,5 +1,6 @@
 "use client";
 
+import { PlanSettings } from "@/components/settings/plan-settings";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { TeamSettings } from "@/components/settings/team-settings";
 import { LogoutButton } from "@/components/auth/logout-button";
@@ -10,6 +11,7 @@ import Link from "next/link";
 import { useTenant, useTenantAppearance } from "@/lib/tenant/provider";
 import { useState, type ReactNode } from "react";
 import {
+  CreditCard,
   Building2,
   ArrowUpRight,
   Plus,
@@ -263,7 +265,7 @@ export function Dashboard({
             <Tabs defaultValue="team" className="w-full">
               <TabsList
                 aria-label="Categorias de configurações"
-                className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0"
+                className="h-auto w-full flex-wrap justify-start gap-y-2 rounded-none border-b bg-transparent p-0"
               >
                 <TabsTrigger
                   value="team"
@@ -288,6 +290,13 @@ export function Dashboard({
                   Empresa
                 </TabsTrigger>
                 <TabsTrigger
+                  value="plans"
+                  className="mr-6 gap-2 rounded-none border-b-2 border-transparent px-1 pb-4 pt-2 text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  Planos
+                </TabsTrigger>
+                <TabsTrigger
                   value="appearance"
                   className="gap-2 rounded-none border-b-2 border-transparent px-1 pb-4 pt-2 text-muted-foreground data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
                 >
@@ -299,6 +308,9 @@ export function Dashboard({
               </TabsContent>
               <TabsContent value="company" className="mt-0 pt-7">
                 <CompanySettings />
+              </TabsContent>
+              <TabsContent value="plans" className="mt-0 pt-7">
+                <PlanSettings />
               </TabsContent>
               <TabsContent value="appearance" className="mt-0 pt-8">
                 <section className="max-w-[960px] space-y-6">

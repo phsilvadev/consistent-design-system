@@ -38,7 +38,8 @@ test("Equipe vem primeiro, conta usuários reais e atualiza após cadastro", asy
   const tabs = categories.getByRole("tab");
   await expect(tabs.nth(0)).toContainText("Equipe");
   await expect(tabs.nth(1)).toHaveText("Empresa");
-  await expect(tabs.nth(2)).toHaveText("Aparência");
+  await expect(tabs.nth(2)).toHaveText("Planos");
+  await expect(tabs.nth(3)).toHaveText("Aparência");
   await expect(tabs.nth(0)).toHaveAttribute("aria-selected", "true");
   await expect(page.getByLabel("Quantidade de usuários: 4")).toHaveText("4");
   await expect(page.getByText("Ana Souza", { exact: true })).toBeVisible();

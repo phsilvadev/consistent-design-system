@@ -112,3 +112,9 @@ Em Configurações → Equipe, a ação Editar permite alterar nome, e-mail, per
 
 ### Configurações da empresa
 Em Configurações → Empresa, membros consultam os dados cadastrais; administradores editam nome fantasia, razão social, CNPJ, contato, endereço e horários semanais com fuso. A aba usa GET/PATCH `/api/v1/company/settings` da API autenticada, confirma o vínculo da empresa retornada e não envia company_id no formulário. Inclui carregamento, tentativa novamente, descarte de alterações, validação e confirmação em modal com fundo desfocado. Atualize o backend e execute `alembic upgrade head` antes de usar. Os horários ficam apenas cadastrados; não ativam atendimento automático. Teste integrado: `e2e/company-settings.spec.ts`, com backend real e SQLite temporário, sem Docker.
+
+### Planos e assinatura
+A aba Configurações → Planos consome `GET /api/v1/company/subscription`: plano atual, trial, usuários e catálogo de upgrade. Nomes, valores, limites e recursos vêm do banco da API; o frontend não mantém planos de fallback. Preparar o backend com `alembic upgrade head` e `python -m app.seeds.plans` em desenvolvimento. O catálogo fictício está identificado na interface. Inclui skeleton, retry, catálogo vazio, indicação do plano atual e detalhes informativos. Contratação, cobrança, quotas e entitlements reais continuam pendentes. E2E: `e2e/plan-settings.spec.ts` usa SQLite temporário e seed real, sem Docker.
+
+### Checklist mestre
+O [CHECKLIST.md](CHECKLIST.md) foi ampliado para os 14 módulos do [prompt mestre](docs/PROMPT_MESTRE.md), incluindo fases futuras, bloqueios e evidências. O [histórico anterior](docs/DEVELOPMENT_HISTORY.md) foi preservado. Os dois repositórios mantêm o mesmo roadmap mestre; itens de fases futuras permanecem pendentes, mesmo que existam telas demonstrativas.

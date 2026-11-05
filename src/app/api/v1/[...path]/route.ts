@@ -10,6 +10,7 @@ const allowed: Record<string, string[]> = {
   "auth/me": ["GET"],
   users: ["GET", "POST"],
   "company/settings": ["GET", "PATCH"],
+  "company/subscription": ["GET"],
 };
 async function forward(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;

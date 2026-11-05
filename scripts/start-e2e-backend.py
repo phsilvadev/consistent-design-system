@@ -15,6 +15,7 @@ with tempfile.TemporaryDirectory(prefix='atendehub-tenant-tests-') as directory:
     database = str(Path(directory) / 'test.db')
     env = {**os.environ, 'DATABASE_URL': f'sqlite:///{database}', 'APP_ENV': 'development', 'COOKIE_SECURE': 'false', 'ALLOWED_ORIGINS': '["http://127.0.0.1:3200"]'}
     subprocess.run([str(python), '-m', 'alembic', 'upgrade', 'head'], cwd=source, env=env, check=True)
+    subprocess.run([str(python), '-m', 'app.seeds.plans'], cwd=source, env=env, check=True)
     metadata.write_text(json.dumps({'database':database, 'python':str(python)}))
     try:
         subprocess.run([str(python), '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8200'], cwd=source, env=env, check=True)
