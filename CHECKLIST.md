@@ -328,3 +328,8 @@ Validação: 89 Vitest, lint/build e 1 E2E com backend real/SQLite temporário a
 Cards adaptados à referência: grupos de canais/gestão, cantos 32px, sombra suave, ícone circular pastel, status no topo e botões pill na base. Validação: 92 Vitest, lint/typecheck/build e E2E da página com backend real/SQLite temporário e do ciclo do modal com provedor simulado aprovados; regressão do webhook oficial aprovada. Pareamento com celular real e ativação do gateway na hospedagem permanecem pendentes no backend. Sem status de conexão inventados nem Docker.
 
 E2E opt-in adicional: API/BFF/navegador integrados a gateway Baileys real geraram QR real e confirmaram desconexão; print real do modal e novos prints dos cards desktop/mobile. Nenhum celular foi pareado.
+
+### Ajuste do painel de conexão
+- [x] Abrir configurações do WhatsApp em aside esquerdo pelo botão laranja; validar abertura/reabertura, dados e desconexão, com prints.
+
+Validado: lint/build e 2 E2E da integração aprovados. O teste confirma posição x=0, largura de até 480px em desktop, reabertura pelo botão Configurar, leitura dos detalhes e desconexão com confirmação, além de ação acessível em mobile. Prints desktop/mobile do estado conectado usam dados do provedor simulado, sem alegar novo pareamento real. Backend preservado.

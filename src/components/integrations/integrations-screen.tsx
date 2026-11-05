@@ -15,6 +15,13 @@ import {
 import { useTenant } from "@/lib/tenant/provider";
 import { whatsappQR, type QRConnection } from "@/lib/auth/whatsapp-qr";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -177,20 +184,21 @@ export function IntegrationsScreen() {
                     {data.phone ? `+${data.phone}` : "Celular conectado"}
                   </p>
                   <Button
-                    variant="outline"
-                    className="h-10 w-full rounded-full"
-                    disabled={busy}
-                    onClick={() => setConfirm(true)}
+                    className="h-10 w-full rounded-full bg-[#ff6848] text-white hover:bg-[#f15d3d]"
+                    disabled={busy || !admin}
+                    onClick={() => setOpen(true)}
                   >
-                    <Unplug className="mr-2 h-4 w-4" />
-                    Desconectar
+                    Configurar
                   </Button>
                 </>
               ) : (
                 <Button
                   className="h-10 w-full rounded-full bg-[#ff6848] text-white shadow-[0_5px_15px_rgba(255,104,72,0.18)] hover:bg-[#f15d3d]"
                   disabled={!admin || !data?.enabled || busy}
-                  onClick={() => void act("connect")}
+                  onClick={() => {
+                    setOpen(true);
+                    void act("connect");
+                  }}
                 >
                   {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {data?.status === "qr" ? "Visualizar QR Code" : "Conectar WhatsApp"}
@@ -293,66 +301,125 @@ export function IntegrationsScreen() {
           </DialogHeader>
         </DialogContent>
       </Dialog>
-      <Dialog open={open && admin} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Conecte seu WhatsApp</DialogTitle>
-            <DialogDescription>
-              Abra o WhatsApp no celular e acesse Dispositivos conectados → Conectar dispositivo.
-            </DialogDescription>
-          </DialogHeader>
-          {data?.status === "connected" ? (
-            <div className="space-y-3 py-8 text-center">
-              <ShieldCheck className="mx-auto h-12 w-12 text-emerald-600" />
-              <p className="font-semibold">WhatsApp conectado!</p>
-              <p className="text-sm text-muted-foreground">
-                As novas mensagens de texto chegarão à central.
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="flex min-h-72 items-center justify-center rounded-2xl border bg-white p-4">
-                {fresh ? (
-                  <img
-                    src={data!.qr_data_url!}
-                    alt="QR Code para conectar o WhatsApp da empresa"
-                    width={280}
-                    height={280}
-                  />
-                ) : (
-                  <div
-                    role="status"
-                    className="space-y-3 text-center text-sm text-muted-foreground"
-                  >
-                    <RefreshCw
-                      className={`mx-auto h-8 w-8 ${data?.status === "connecting" ? "animate-spin" : ""}`}
-                    />
-                    <p>
-                      {error
-                        ? "Conexão indisponível."
-                        : data?.status === "error"
-                          ? "Não foi possível gerar o código."
-                          : "Aguardando um novo QR Code…"}
-                    </p>
+      <Sheet open={open && admin} onOpenChange={setOpen}>
+        <SheetContent
+          side="left"
+          className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[480px] [&>button]:right-5 [&>button]:top-6"
+        >
+          <SheetHeader className="border-b bg-card p-6 pr-12 text-left">
+            <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
+              <MessageCircle className="h-5 w-5" />
+            </span>
+            <SheetTitle>Configurações do WhatsApp</SheetTitle>
+            <SheetDescription>Gerencie a conexão e o dispositivo da sua empresa.</SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 space-y-6 overflow-y-auto p-6">
+            <section
+              className="space-y-4 rounded-2xl border bg-card p-5"
+              aria-label="Dados da conexão"
+            >
+              <h3 className="text-sm font-semibold">Detalhes da conexão</h3>
+              <dl className="space-y-4 text-sm">
+                {[
+                  ["Empresa", tenant.name],
+                  ["Tipo de conexão", "QR Code · não oficial"],
+                  ["Status", data ? labels[data.status] : "Indisponível"],
+                  [
+                    "Número conectado",
+                    data?.phone ? `+${data.phone}` : "Nenhum dispositivo conectado",
+                  ],
+                ].map(([label, value]) => (
+                  <div key={label} className="space-y-1">
+                    <dt className="text-xs text-muted-foreground">{label}</dt>
+                    <dd className="break-words font-medium">{value}</dd>
                   </div>
-                )}
-              </div>
-              <p className="text-center text-xs text-muted-foreground">
-                {fresh
-                  ? `O código expira em ${Math.max(0, data!.qr_expires_at! - clock)} segundos.`
-                  : "O código será atualizado automaticamente enquanto a conexão estiver ativa."}
+                ))}
+              </dl>
+            </section>
+            {error && (
+              <p role="alert" className="rounded-xl bg-destructive/5 p-3 text-sm text-destructive">
+                {error}
               </p>
-              <Button variant="outline" disabled={busy} onClick={() => void act("connect")}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Atualizar conexão
+            )}
+            {data?.status !== "connected" && (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">Conectar dispositivo</h3>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Abra o WhatsApp no celular e acesse Dispositivos conectados → Conectar
+                  dispositivo. Aponte a câmera para o código abaixo.
+                </p>
+              </div>
+            )}
+            {data?.status === "connected" ? (
+              <div className="space-y-3 py-8 text-center">
+                <ShieldCheck className="mx-auto h-12 w-12 text-emerald-600" />
+                <p className="font-semibold">WhatsApp conectado!</p>
+                <p className="text-sm text-muted-foreground">
+                  As novas mensagens de texto chegarão à central.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex min-h-72 items-center justify-center rounded-2xl border bg-white p-4">
+                  {fresh ? (
+                    <img
+                      src={data!.qr_data_url!}
+                      alt="QR Code para conectar o WhatsApp da empresa"
+                      width={280}
+                      height={280}
+                    />
+                  ) : (
+                    <div
+                      role="status"
+                      className="space-y-3 text-center text-sm text-muted-foreground"
+                    >
+                      <RefreshCw
+                        className={`mx-auto h-8 w-8 ${data?.status === "connecting" ? "animate-spin" : ""}`}
+                      />
+                      <p>
+                        {error
+                          ? "Conexão indisponível."
+                          : data?.status === "error"
+                            ? "Não foi possível gerar o código."
+                            : "Aguardando um novo QR Code…"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-center text-xs text-muted-foreground">
+                  {fresh
+                    ? `O código expira em ${Math.max(0, data!.qr_expires_at! - clock)} segundos.`
+                    : "O código será atualizado automaticamente enquanto a conexão estiver ativa."}
+                </p>
+                <Button variant="outline" disabled={busy} onClick={() => void act("connect")}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Atualizar conexão
+                </Button>
+              </>
+            )}
+            <p className="text-[11px] text-muted-foreground">
+              Somente administradores podem visualizar este código. Não compartilhe seu QR Code.
+            </p>
+          </div>
+          <div className="border-t bg-card p-5">
+            {data?.status === "connected" ? (
+              <Button
+                variant="outline"
+                className="w-full rounded-full text-destructive"
+                disabled={busy}
+                onClick={() => setConfirm(true)}
+              >
+                <Unplug className="mr-2 h-4 w-4" />
+                Desconectar
               </Button>
-            </>
-          )}
-          <p className="text-[11px] text-muted-foreground">
-            Somente administradores podem visualizar este código. Não compartilhe seu QR Code.
-          </p>
-        </DialogContent>
-      </Dialog>
+            ) : (
+              <p className="text-center text-xs text-muted-foreground">
+                A conexão será atualizada automaticamente.
+              </p>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>

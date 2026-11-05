@@ -31,7 +31,10 @@ test("Integrações apresenta estado real sem conexões fictícias", async ({ pa
   });
 });
 
-test("Modal de pareamento trata expiração, conexão e desconexão", async ({ page, context }) => {
+test("Aside esquerdo trata expiração, conexão, configurações e desconexão", async ({
+  page,
+  context,
+}) => {
   const response = await context.request.post("/api/v1/auth/register", {
     headers: { Origin: "http://127.0.0.1:3200" },
     data: {
@@ -87,12 +90,31 @@ test("Modal de pareamento trata expiração, conexão e desconexão", async ({ p
   await expect(page.getByText("WhatsApp conectado!", { exact: true })).toBeVisible({
     timeout: 10000,
   });
+  const panel = page.getByRole("dialog", { name: "Configurações do WhatsApp" });
+  await expect(panel).toBeVisible();
+  await expect.poll(async () => Math.round((await panel.boundingBox())?.x ?? -1)).toBe(0);
+  const bounds = await panel.boundingBox();
+  expect(bounds?.x).toBe(0);
+  expect(bounds?.width).toBeLessThanOrEqual(480);
+  await page.screenshot({
+    path: "/workspace/atendehub-whatsapp-config-aside-desktop.png",
+    fullPage: true,
+  });
   await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: "Configurar", exact: true }).click();
+  await expect(panel).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(panel.getByRole("button", { name: "Desconectar", exact: true })).toBeVisible();
+  await page.screenshot({
+    path: "/workspace/atendehub-whatsapp-config-aside-mobile.png",
+    fullPage: true,
+  });
   await page.getByRole("button", { name: "Desconectar", exact: true }).click();
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await page
     .getByRole("alertdialog")
     .getByRole("button", { name: "Desconectar", exact: true })
     .click();
-  await expect(page.getByText("Não conectado", { exact: true })).toBeVisible();
+  await expect(panel).not.toBeVisible();
+  await expect(page.getByRole("main").getByText("Não conectado", { exact: true })).toBeVisible();
 });
