@@ -14,7 +14,7 @@ test("Integrações apresenta estado real sem conexões fictícias", async ({ pa
   await page.goto(`/${identity.company.id}/integracoes`);
   await expect(page.getByRole("heading", { name: "Integrações", exact: true })).toBeVisible();
   await expect(page.getByText("Não conectado", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Conectar WhatsApp", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Conectar", exact: true })).toHaveCount(2);
   await expect(page.getByText("Conectado", { exact: true })).toHaveCount(0);
   await page.screenshot({
     path: "/workspace/atendehub-integracoes-cliente-desktop.png",
@@ -29,6 +29,38 @@ test("Integrações apresenta estado real sem conexões fictícias", async ({ pa
     path: "/workspace/atendehub-integracoes-cliente-mobile.png",
     fullPage: true,
   });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  const qrCard = page
+    .getByRole("article")
+    .filter({ has: page.getByRole("heading", { name: "WhatsApp por QR Code", exact: true }) });
+  await qrCard.getByRole("button", { name: "Conectar", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Gerar QR Code", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Como conectar", exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  const officialCard = page
+    .getByRole("article")
+    .filter({ has: page.getByRole("heading", { name: "WhatsApp Business", exact: true }) });
+  await officialCard.getByRole("button", { name: "Conectar", exact: true }).click();
+  const official = page.getByRole("dialog", { name: "WhatsApp Business oficial", exact: true });
+  await expect(official).toBeVisible();
+  await expect.poll(async () => Math.round((await official.boundingBox())?.x ?? -1)).toBe(0);
+  expect((await official.boundingBox())?.width).toBe(640);
+  await official.getByRole("button", { name: "Como conectar", exact: true }).click();
+  await expect(official.getByText("Prepare sua conta", { exact: true })).toBeVisible();
+  await page.screenshot({
+    path: "/workspace/atendehub-whatsapp-oficial-aside-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.screenshot({
+    path: "/workspace/atendehub-whatsapp-oficial-aside-mobile.png",
+    fullPage: true,
+  });
+  await official.getByRole("button", { name: "Fechar", exact: true }).click();
+  await expect(official).not.toBeVisible();
 });
 
 test("Aside esquerdo trata expiração, conexão, configurações e desconexão", async ({
@@ -76,7 +108,12 @@ test("Aside esquerdo trata expiração, conexão, configurações e desconexão"
     await route.fulfill({ json: state });
   });
   await page.goto(`/${identity.company.id}/integracoes`);
-  await page.getByRole("button", { name: "Conectar WhatsApp", exact: true }).click();
+  await page
+    .getByRole("article")
+    .filter({ has: page.getByRole("heading", { name: "WhatsApp por QR Code", exact: true }) })
+    .getByRole("button", { name: "Conectar", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Gerar QR Code", exact: true }).click();
   const image = page.getByAltText("QR Code para conectar o WhatsApp da empresa");
   await expect(image).toBeVisible();
   await expect(image).toHaveCount(0, { timeout: 5000 });

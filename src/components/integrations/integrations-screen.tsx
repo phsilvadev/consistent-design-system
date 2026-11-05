@@ -24,13 +24,6 @@ import {
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
   AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
@@ -58,6 +51,8 @@ export function IntegrationsScreen() {
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [officialInfo, setOfficialInfo] = useState(false);
+  const [officialHelp, setOfficialHelp] = useState(false);
+  const [qrHelp, setQrHelp] = useState(false);
   const [revision, setRevision] = useState(0);
   const [clock, setClock] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
@@ -184,7 +179,8 @@ export function IntegrationsScreen() {
                     {data.phone ? `+${data.phone}` : "Celular conectado"}
                   </p>
                   <Button
-                    className="h-10 w-full rounded-full bg-[#ff6848] text-white hover:bg-[#f15d3d]"
+                    variant="outline"
+                    className="h-10 w-full rounded-full font-normal"
                     disabled={busy || !admin}
                     onClick={() => setOpen(true)}
                   >
@@ -193,15 +189,13 @@ export function IntegrationsScreen() {
                 </>
               ) : (
                 <Button
-                  className="h-10 w-full rounded-full bg-[#ff6848] text-white shadow-[0_5px_15px_rgba(255,104,72,0.18)] hover:bg-[#f15d3d]"
-                  disabled={!admin || !data?.enabled || busy}
-                  onClick={() => {
-                    setOpen(true);
-                    void act("connect");
-                  }}
+                  variant="outline"
+                  className="h-10 w-full rounded-full font-normal"
+                  disabled={!admin || busy}
+                  onClick={() => setOpen(true)}
                 >
                   {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  {data?.status === "qr" ? "Visualizar QR Code" : "Conectar WhatsApp"}
+                  {data?.status === "qr" ? "Configurar" : "Conectar"}
                 </Button>
               )}
             </div>
@@ -226,9 +220,10 @@ export function IntegrationsScreen() {
               <Button
                 variant="outline"
                 className="h-10 w-full rounded-full font-normal"
+                disabled={!admin}
                 onClick={() => setOfficialInfo(true)}
               >
-                Como conectar
+                Conectar
               </Button>
             </div>
           </article>
@@ -290,17 +285,107 @@ export function IntegrationsScreen() {
         Cada conexão pertence à sua empresa. Nesta etapa, o WhatsApp recebe mensagens de texto; o
         envio de respostas ainda está em preparação.
       </p>
-      <Dialog open={officialInfo} onOpenChange={setOfficialInfo}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>WhatsApp Business oficial</DialogTitle>
-            <DialogDescription>
-              A ativação da conexão oficial é realizada com o suporte da plataforma. O cadastro
-              simplificado da Meta ainda está em preparação.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <Sheet open={officialInfo && admin} onOpenChange={setOfficialInfo}>
+        <SheetContent
+          side="left"
+          className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[640px] [&>button]:right-6 [&>button]:top-7"
+        >
+          <SheetHeader className="border-b bg-card p-7 pr-14 text-left">
+            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-blue-500">
+              <MessageCircle className="h-6 w-6" />
+            </span>
+            <SheetTitle>WhatsApp Business oficial</SheetTitle>
+            <SheetDescription>
+              Configure a conexão oficial da sua empresa com a Meta.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="flex-1 space-y-6 overflow-y-auto p-6 sm:p-7">
+            <section className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+              <h3 className="text-sm font-semibold">Detalhes da integração</h3>
+              <dl className="grid gap-5 sm:grid-cols-2">
+                {[
+                  ["Empresa", tenant.name],
+                  ["Tipo de conexão", "Cloud API · oficial"],
+                  ["Ativação", "Assistida pela plataforma"],
+                  ["Canal", "WhatsApp Business"],
+                ].map(([label, value]) => (
+                  <div key={label} className="space-y-1.5">
+                    <dt className="text-xs text-muted-foreground">{label}</dt>
+                    <dd className="break-words text-sm font-medium">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+            <section className="space-y-4 rounded-2xl border bg-card p-5 sm:p-6">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-500" />
+                <div>
+                  <h3 className="text-sm font-semibold">Antes de conectar</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    Tenha um número comercial autorizado e acesso de administrador à conta da sua
+                    empresa na Meta.
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full rounded-full"
+                aria-expanded={officialHelp}
+                aria-controls="official-connect-help"
+                onClick={() => setOfficialHelp((v) => !v)}
+              >
+                <CircleHelp className="mr-2 h-4 w-4" />
+                Como conectar
+              </Button>
+              {officialHelp && (
+                <ol id="official-connect-help" className="space-y-5 border-t pt-5">
+                  {[
+                    [
+                      "Prepare sua conta",
+                      "Confirme os dados da empresa e o número comercial que será usado no atendimento.",
+                    ],
+                    [
+                      "Autorize a conexão",
+                      "O administrador da empresa participa da autorização na Meta, com orientação do suporte da plataforma.",
+                    ],
+                    [
+                      "Conclua a ativação",
+                      "O suporte configura e valida o recebimento de mensagens para a sua empresa.",
+                    ],
+                    [
+                      "Teste o atendimento",
+                      "Após a confirmação da ativação, envie uma mensagem de teste para conferir a chegada na central.",
+                    ],
+                  ].map(([title, text], index) => (
+                    <li key={title} className="flex gap-3">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-xs font-semibold text-blue-600">
+                        {index + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium">{title}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{text}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+            <p className="rounded-2xl bg-blue-50 p-4 text-xs leading-relaxed text-blue-900">
+              A ativação oficial é assistida pelo suporte. A autorização automática pela Meta ainda
+              está em preparação; esta tela não ativa a conexão por conta própria.
+            </p>
+          </div>
+          <div className="border-t bg-card p-6">
+            <Button
+              variant="outline"
+              className="w-full rounded-full"
+              onClick={() => setOfficialInfo(false)}
+            >
+              Fechar
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
       <Sheet open={open && admin} onOpenChange={setOpen}>
         <SheetContent
           side="left"
@@ -340,6 +425,27 @@ export function IntegrationsScreen() {
               <p role="alert" className="rounded-xl bg-destructive/5 p-3 text-sm text-destructive">
                 {error}
               </p>
+            )}
+            <Button
+              variant="outline"
+              className="w-full rounded-full"
+              aria-expanded={qrHelp}
+              aria-controls="qr-connect-help"
+              onClick={() => setQrHelp((v) => !v)}
+            >
+              <CircleHelp className="mr-2 h-4 w-4" />
+              Como conectar
+            </Button>
+            {qrHelp && (
+              <ol
+                id="qr-connect-help"
+                className="list-inside list-decimal space-y-2 rounded-xl border bg-card p-4 text-xs leading-relaxed text-muted-foreground"
+              >
+                <li>Abra o WhatsApp no celular da empresa.</li>
+                <li>Acesse Dispositivos conectados e toque em Conectar dispositivo.</li>
+                <li>Gere o QR Code abaixo e aponte a câmera do celular para ele.</li>
+                <li>Aguarde a confirmação da conexão nesta tela.</li>
+              </ol>
             )}
             {data?.status !== "connected" && (
               <div className="space-y-2">
@@ -391,14 +497,22 @@ export function IntegrationsScreen() {
                     ? `O código expira em ${Math.max(0, data!.qr_expires_at! - clock)} segundos.`
                     : "O código será atualizado automaticamente enquanto a conexão estiver ativa."}
                 </p>
-                <Button variant="outline" disabled={busy} onClick={() => void act("connect")}>
+                <Button
+                  variant="outline"
+                  disabled={busy || !data?.enabled}
+                  onClick={() => void act("connect")}
+                >
                   <RefreshCw className="mr-2 h-4 w-4" />
-                  Atualizar conexão
+                  {data?.status === "qr" || data?.status === "connecting"
+                    ? "Atualizar conexão"
+                    : "Gerar QR Code"}
                 </Button>
               </>
             )}
             <p className="text-[11px] text-muted-foreground">
-              Somente administradores podem visualizar este código. Não compartilhe seu QR Code.
+              {data?.status === "connected"
+                ? "Somente administradores podem gerenciar esta conexão."
+                : "Somente administradores podem visualizar este código. Não compartilhe seu QR Code."}
             </p>
           </div>
           <div className="border-t bg-card p-5">

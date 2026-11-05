@@ -17,7 +17,10 @@ test("Gateway real gera QR sem parear celular", async ({ page, context }) => {
   expect(registration.status()).toBe(201);
   const identity = await registration.json();
   await page.goto(`/${identity.company.id}/integracoes`);
-  const button = page.getByRole("button", { name: "Conectar WhatsApp", exact: true });
+  const button = page
+    .getByRole("article")
+    .filter({ has: page.getByRole("heading", { name: "WhatsApp por QR Code", exact: true }) })
+    .getByRole("button", { name: "Conectar", exact: true });
   await expect(button).toBeEnabled();
   await page.screenshot({
     path: "/workspace/atendehub-integracoes-cliente-desktop.png",
@@ -33,6 +36,7 @@ test("Gateway real gera QR sem parear celular", async ({ page, context }) => {
   });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await button.click();
+  await page.getByRole("button", { name: "Gerar QR Code", exact: true }).click();
   await expect(page.getByAltText("QR Code para conectar o WhatsApp da empresa")).toBeVisible({
     timeout: 40000,
   });

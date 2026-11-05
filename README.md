@@ -146,3 +146,5 @@ A página Integrações consulta a API `/integrations/whatsapp-qr` pelo BFF e pe
 O teste opt-in `QR_GATEWAY_LIVE=1 npx playwright test e2e/qr-gateway-live.spec.ts` exige gateway real privado e variáveis do backend correspondentes. Ele gera QR e desconecta sem parear celular; não usa conta real nem valida recebimento real. Foi executado com sucesso nesta entrega. A suíte padrão não depende da rede WhatsApp.
 
 A conexão WhatsApp abre em painel lateral esquerdo: antes do pareamento, apresenta instruções e QR temporário; quando conectada, o botão laranja **Configurar** reabre os detalhes da empresa, tipo, status, número e desconexão confirmada. Em mobile, o painel ocupa a largura disponível e mantém o rodapé acessível.
+
+Os dois cards WhatsApp usam botão cinza **Conectar**, que abre o aside esquerdo. A ajuda **Como conectar** fica dentro de cada painel. O painel oficial possui 640px no desktop; no QR, a ação **Gerar QR Code** inicia o pareamento apenas após abrir os detalhes. Sem gateway configurado, os detalhes/ajuda continuam acessíveis e a geração fica desabilitada.

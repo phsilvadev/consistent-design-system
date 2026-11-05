@@ -333,3 +333,8 @@ E2E opt-in adicional: API/BFF/navegador integrados a gateway Baileys real gerara
 - [x] Abrir configurações do WhatsApp em aside esquerdo pelo botão laranja; validar abertura/reabertura, dados e desconexão, com prints.
 
 Validado: lint/build e 2 E2E da integração aprovados. O teste confirma posição x=0, largura de até 480px em desktop, reabertura pelo botão Configurar, leitura dos detalhes e desconexão com confirmação, além de ação acessível em mobile. Prints desktop/mobile do estado conectado usam dados do provedor simulado, sem alegar novo pareamento real. Backend preservado.
+
+### Padronização dos cards e painel oficial
+- [x] Botões Conectar em cinza/outline, abertura de aside sem iniciar pareamento; ajuda dentro dos painéis e aside oficial mais largo.
+
+Validação: lint/build e 2 E2E aprovados. Testes conferem dois botões Conectar, acesso ao painel QR com gateway desabilitado e geração bloqueada, ajuda interna, aside oficial em x=0 com largura 640px, guia expansível e fechamento/mobile sem overflow; fluxo QR continua validado. Prints desktop/mobile dos cards e painel oficial atualizados. Nenhuma ativação automática oficial foi adicionada: atendimento assistido continua explícito.
