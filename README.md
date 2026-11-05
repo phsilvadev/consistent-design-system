@@ -106,3 +106,6 @@ A listagem apresenta nome, e-mail, perfil e status da própria empresa. “Adici
 Vendedores, supervisores e operadores recebem uma mensagem de acesso restrito à administração da equipe. Aparência continua disponível como preferência pessoal. Edição de perfil e desativação de usuários não foram implementadas nesta etapa.
 
 Validação adicional: 71 testes Vitest aprovados e 6 E2E com FastAPI/SQLite reais, cobrindo contagem após cadastro/reload, troca entre abas, permissões e layout mobile. O backend não precisou ser alterado.
+
+### Edição de usuários
+Em Configurações → Equipe, a ação Editar permite alterar nome, e-mail, perfil e ativação por meio do backend autenticado. O formulário abre em modal por padrão e oferece Tela cheia e Barra lateral pelo seletor no cabeçalho. A preferência fica neste navegador e os campos são preservados ao alternar. Mudanças de permissões/e-mail/ativação encerram as sessões do usuário editado. A API deve oferecer `PATCH /api/v1/users/{user_id}` conforme documentado no backend.

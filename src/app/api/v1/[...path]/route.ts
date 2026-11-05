@@ -13,7 +13,8 @@ const allowed: Record<string, string[]> = {
 async function forward(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
   const joined = path.join("/");
-  const methods = allowed[joined] || (/^users\/[a-f0-9-]{36}$/.test(joined) ? ["GET"] : []);
+  const methods =
+    allowed[joined] || (/^users\/[a-f0-9-]{36}$/.test(joined) ? ["GET", "PATCH"] : []);
   if (!methods.includes(request.method))
     return NextResponse.json({ detail: "Recurso indisponível." }, { status: 404 });
   if (request.method !== "GET") {
@@ -88,4 +89,4 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
     );
   }
 }
-export { forward as GET, forward as POST };
+export { forward as GET, forward as POST, forward as PATCH };

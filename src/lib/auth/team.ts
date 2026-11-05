@@ -11,7 +11,20 @@ export const roleLabels: Record<TeamRole, string> = {
   operator: "Operador",
 };
 export type NewUser = { name: string; email: string; password: string; role: TeamRole };
+export type UserChanges = Pick<TeamUser, "name" | "email" | "role" | "active">;
 export const teamApi = {
+  async update(companyId: string, userId: string, input: UserChanges): Promise<TeamUser> {
+    const result = userSchema.safeParse(
+      await apiRequest(
+        `/users/${encodeURIComponent(userId)}`,
+        { name: input.name, email: input.email, role: input.role, active: input.active },
+        "PATCH",
+      ),
+    );
+    if (!result.success || result.data.company_id !== companyId || result.data.id !== userId)
+      throw new ApiError(502, "Não foi possível validar o usuário atualizado. Atualize a lista.");
+    return result.data;
+  },
   async list(companyId: string): Promise<TeamUser[]> {
     const result = userSchema.array().safeParse(await apiRequest("/users"));
     if (!result.success || result.data.some((user) => user.company_id !== companyId))

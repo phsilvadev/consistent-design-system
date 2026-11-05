@@ -61,3 +61,16 @@ describe("API de equipe", () => {
     await expect(teamApi.list(testIdentity.company.id)).rejects.toMatchObject({ status: 403 });
   });
 });
+
+it("edição usa PATCH e descarta campos que não podem ser alterados", async () => {
+  const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(testIdentity.user)));
+  vi.stubGlobal("fetch", fetch);
+  await teamApi.update(testIdentity.company.id, testIdentity.user.id, testIdentity.user);
+  expect(fetch.mock.calls[0]?.[1].method).toBe("PATCH");
+  expect(JSON.parse(fetch.mock.calls[0]?.[1].body)).toEqual({
+    name: testIdentity.user.name,
+    email: testIdentity.user.email,
+    role: testIdentity.user.role,
+    active: testIdentity.user.active,
+  });
+});

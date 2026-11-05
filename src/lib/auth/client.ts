@@ -7,11 +7,11 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export async function apiRequest(path: string, body?: unknown): Promise<unknown> {
+export async function apiRequest(path: string, body?: unknown, method?: "PATCH"): Promise<unknown> {
   let response: Response;
   try {
     response = await fetch(`/api/v1${path}`, {
-      method: body === undefined ? "GET" : "POST",
+      method: method ?? (body === undefined ? "GET" : "POST"),
       credentials: "same-origin",
       cache: "no-store",
       ...(body === undefined

@@ -89,6 +89,70 @@ test("Equipe vem primeiro, conta usuários reais e atualiza após cadastro", asy
     path: test.info().outputPath("settings-team-desktop.png"),
     fullPage: true,
   });
+  await page.getByRole("button", { name: "Editar Ana Souza", exact: true }).click();
+  const editor = page.getByRole("dialog", { name: "Editar usuário", exact: true });
+  await expect(editor).toHaveAttribute("data-display-mode", "modal");
+  await editor.getByLabel("Nome completo", { exact: true }).fill("Ana Souza Martins");
+  async function captureEditor(filename: string) {
+    await editor.evaluate(async (element) => {
+      await Promise.all(
+        element.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})),
+      );
+    });
+    await page.screenshot({ path: test.info().outputPath(filename) });
+  }
+  await captureEditor("user-edit-modal.png");
+  await editor.getByRole("button", { name: "Modo de exibição" }).click();
+  await page.getByRole("group", { name: "Formato do formulário" }).waitFor();
+  await page.screenshot({
+    path: test.info().outputPath("user-edit-mode-picker.png"),
+    animations: "disabled",
+  });
+  await page.getByRole("button", { name: "Tela cheia", exact: true }).click();
+  await expect(editor).toHaveAttribute("data-display-mode", "fullscreen");
+  await expect(editor.getByLabel("Nome completo", { exact: true })).toHaveValue(
+    "Ana Souza Martins",
+  );
+  expect(
+    await editor.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return (
+        Math.abs(r.x) < 1 &&
+        Math.abs(r.y) < 1 &&
+        Math.abs(r.width - innerWidth) < 1 &&
+        Math.abs(r.height - innerHeight) < 1
+      );
+    }),
+  ).toBe(true);
+  await captureEditor("user-edit-fullscreen.png");
+  await editor.getByRole("button", { name: "Modo de exibição" }).click();
+  await page.getByRole("button", { name: "Barra lateral", exact: true }).click();
+  await expect(editor).toHaveAttribute("data-display-mode", "aside");
+  expect(
+    await editor.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      return r.y === 0 && r.right === innerWidth && r.height === innerHeight;
+    }),
+  ).toBe(true);
+  await captureEditor("user-edit-aside.png");
+  await editor.getByRole("button", { name: "Salvar alterações", exact: true }).click();
+  const saved = page.getByRole("alertdialog", { name: "Alterações salvas", exact: true });
+  await expect(saved).toBeVisible();
+  await saved.getByRole("button", { name: "Voltar para equipe" }).click();
+  await expect(page.getByText("Ana Souza Martins", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Quantidade de usuários: 5")).toHaveText("5");
+  await page.reload();
+  await page.getByRole("button", { name: "Editar Ana Souza Martins", exact: true }).click();
+  await expect(editor).toHaveAttribute("data-display-mode", "aside");
+  await expect(editor.getByLabel("Nome completo", { exact: true })).toHaveValue(
+    "Ana Souza Martins",
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect
+    .poll(() => editor.evaluate((el) => el.getBoundingClientRect().width <= innerWidth))
+    .toBe(true);
+  await editor.getByRole("button", { name: "Cancelar", exact: true }).click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await tabs.nth(1).click();
   await expect(page.getByRole("heading", { name: "Estilo da interface" })).toBeVisible();
   await expect(page.getByLabel("Quantidade de usuários: 5")).toHaveText("5");

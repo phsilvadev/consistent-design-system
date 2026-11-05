@@ -25,6 +25,7 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import { EditTeamUser } from "./edit-team-user";
 const roles = Object.entries(roleLabels) as [TeamRole, string][];
 export function TeamSettings({ onCountChange }: { onCountChange: (count: number | null) => void }) {
   const { tenant, user } = useTenant();
@@ -34,6 +35,7 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [createdUser, setCreatedUser] = useState<Pick<TeamUser, "name" | "role"> | null>(null);
+  const [updated, setUpdated] = useState(false);
   const addUserButton = useRef<HTMLButtonElement>(null);
   const [revision, setRevision] = useState(0);
   const [open, setOpen] = useState(false);
@@ -90,6 +92,7 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
         role: String(form.get("role")) as TeamRole,
       });
       setOpen(false);
+      setUpdated(false);
       setCreatedUser({ name: created.name, role: created.role });
       setRevision((value) => value + 1);
     } catch (e) {
@@ -299,19 +302,21 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
               <CheckCircle2 className="h-7 w-7" />
             </span>
             <AlertDialogTitle className="text-xl font-semibold tracking-tight">
-              Usuário cadastrado
+              {updated ? "Alterações salvas" : "Usuário cadastrado"}
             </AlertDialogTitle>
             <AlertDialogDescription className="pt-3 text-sm leading-6">
               O acesso de{" "}
               <strong className="font-medium text-foreground">{createdUser?.name}</strong> foi
-              criado para {tenant.name}.
+              {updated ? "atualizado" : "criado"} para {tenant.name}.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <p className="mb-6 mt-5 text-center text-xs leading-5 text-muted-foreground">
-            Compartilhe as credenciais de acesso com o usuário. Nenhum convite por e-mail foi
-            enviado.
-          </p>
-          <AlertDialogFooter className="sm:justify-center">
+          {!updated && (
+            <p className="mb-6 mt-5 text-center text-xs leading-5 text-muted-foreground">
+              Compartilhe as credenciais de acesso com o usuário. Nenhum convite por e-mail foi
+              enviado.
+            </p>
+          )}
+          <AlertDialogFooter className="mt-6 sm:justify-center">
             <AlertDialogAction className="w-full rounded-xl font-semibold">
               Voltar para equipe
             </AlertDialogAction>
@@ -338,18 +343,19 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
                   <th className="px-6 py-4 font-medium">Usuário</th>
                   <th className="px-6 py-4 font-medium">Perfil de acesso</th>
                   <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 text-right font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {loading ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
                       <span role="status">Carregando equipe…</span>
                     </td>
                   </tr>
                 ) : users.length === 0 ? (
                   <tr>
-                    <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground">
+                    <td colSpan={4} className="px-6 py-12 text-center text-muted-foreground">
                       Nenhum usuário encontrado.
                     </td>
                   </tr>
@@ -395,6 +401,17 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
                           {member.active ? "Ativo" : "Inativo"}
                         </span>
                       </td>
+                      <td className="px-6 py-5 text-right">
+                        <EditTeamUser
+                          member={member}
+                          currentUserId={user.id}
+                          onSaved={(saved) => {
+                            setUpdated(true);
+                            setCreatedUser({ name: saved.name, role: saved.role });
+                            setRevision((value) => value + 1);
+                          }}
+                        />
+                      </td>
                     </tr>
                   ))
                 )}
@@ -410,8 +427,8 @@ export function TeamSettings({ onCountChange }: { onCountChange: (count: number 
         </div>
       )}
       <p className="text-xs leading-6 text-muted-foreground">
-        Os usuários cadastrados pertencem somente a esta empresa. A edição de perfis e a desativação
-        de acessos ainda não estão disponíveis.
+        Os usuários cadastrados pertencem somente a esta empresa. Somente administradores podem
+        gerenciar os acessos.
       </p>
     </section>
   );
