@@ -346,3 +346,8 @@ Validação: lint/build e 2 E2E aprovados. Testes conferem dois botões Conectar
 - [x] Exigir confirmação para operações de registro e inscrição; PIN somente transitório, sem persistência no navegador.
 
 Validação: 95 Vitest, lint/build/typecheck e 3 E2E aprovados. E2E de credenciais usa contrato de provedor simulado, valida token em input password e limpeza, nenhuma persistência em local/sessionStorage, expansão 960px e ações explícitas. Backend: 82 Pytest com Graph HTTP simulado, isolamento e criptografia. Conta/aplicativo Meta reais não foram configurados; prints de cadastro/ativação utilizam dados de teste. Sem Docker.
+
+### GestãoClick — cadastro essencial
+- [x] Card/aside de cadastro, edição e remoção com dados reais da API e segredos não retornados; testes e print validados.
+
+Validação direcionada: 2 Vitest, lint/typecheck/build e 1 E2E com API real/SQLite temporário aprovados (cadastro, reload, segredos vazios, manutenção/edição, remoção confirmada e mobile). Backend validado com 3 Pytest específicos. Prints usam dados de teste; sem chamadas ERP/OpenAI ou Docker. Status Credenciais cadastradas não representa conexão validada.

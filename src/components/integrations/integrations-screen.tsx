@@ -12,6 +12,7 @@ import {
   Braces,
   CircleHelp,
 } from "lucide-react";
+import { GestaoClickCard } from "./gestaoclick";
 import { OfficialWhatsApp } from "./official-whatsapp";
 import { useTenant } from "@/lib/tenant/provider";
 import { whatsappQR, type QRConnection } from "@/lib/auth/whatsapp-qr";
@@ -214,13 +215,8 @@ export function IntegrationsScreen() {
           Gestão e automações
         </h2>
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <GestaoClickCard />
           {[
-            {
-              icon: Boxes,
-              name: "GestãoClick ERP",
-              text: "Produtos, clientes, preços e estoque conectados à sua operação.",
-              color: "bg-violet-100 text-violet-500",
-            },
             {
               icon: Braces,
               name: "API e automações",
