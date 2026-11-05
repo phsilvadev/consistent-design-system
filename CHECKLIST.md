@@ -51,3 +51,5 @@ Validação: build e lint aprovados; E2E de Equipe aprovado com erro de e-mail d
 - [x] Editar usuários com isolamento por empresa e permissões, formulário em modal (padrão), tela cheia ou painel direito; validar e gerar prints.
 
 Validação: 72 testes Vitest, 22 Pytest, build e lint aprovados. E2E validou salvamento real, persistência, contagem, troca de formatos sem perda de dados, dimensões desktop/mobile e preferência no navegador. Prints dos três modos gerados. Nenhum Docker executado.
+
+- [x] Alinhar o seletor de formato com o botão fechar no cabeçalho do editor. Build e E2E aprovados; print atualizado.

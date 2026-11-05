@@ -134,7 +134,7 @@ export function EditTeamUser({
             document.getElementById(`edit-user-${member.id}`)?.focus();
           }}
         >
-          <div className="flex items-start gap-4 border-b px-6 py-5 pr-14">
+          <div className="flex items-start gap-4 border-b px-6 py-5 pr-24">
             <DialogHeader className="flex-1 text-left">
               <DialogTitle>Editar usuário</DialogTitle>
               <DialogDescription className="pt-1">
@@ -147,7 +147,7 @@ export function EditTeamUser({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 rounded-lg"
+                  className="absolute right-10 top-2 h-8 w-8 rounded-lg"
                   aria-label="Modo de exibição"
                   title="Modo de exibição"
                 >
