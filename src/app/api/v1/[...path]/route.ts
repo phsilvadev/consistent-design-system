@@ -13,6 +13,7 @@ const allowed: Record<string, string[]> = {
   "company/subscription": ["GET"],
   conversations: ["GET", "POST"],
   "conversations/assignees": ["GET"],
+  "conversations/summary": ["GET"],
 };
 async function forward(request: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params;
@@ -21,9 +22,13 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
     allowed[joined] ||
     (/^users\/[a-f0-9-]{36}$/.test(joined) || /^conversations\/[a-f0-9-]{36}$/.test(joined)
       ? ["GET", "PATCH"]
-      : /^conversations\/[a-f0-9-]{36}\/messages$/.test(joined)
-        ? ["GET", "POST"]
-        : []);
+      : /^conversations\/[a-f0-9-]{36}\/read$/.test(joined)
+        ? ["POST"]
+        : /^conversations\/[a-f0-9-]{36}\/updates$/.test(joined)
+          ? ["GET"]
+          : /^conversations\/[a-f0-9-]{36}\/messages$/.test(joined)
+            ? ["GET", "POST"]
+            : []);
   if (!methods.includes(request.method))
     return NextResponse.json({ detail: "Recurso indisponível." }, { status: 404 });
   if (request.method !== "GET") {

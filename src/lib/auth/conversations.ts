@@ -41,6 +41,10 @@ const conversationSchema = z.object({
   updated_at: z.number(),
   closed_at: z.number().nullable(),
   version: z.number().int().positive(),
+  unread_count: z.number().int().nonnegative(),
+  first_response_at: z.number().nullable(),
+  first_response_seconds: z.number().int().nonnegative().nullable(),
+  handling_seconds: z.number().int().nonnegative(),
 });
 const messageSchema = z.object({
   id: z.number().int().positive(),
@@ -69,12 +73,66 @@ function validated(companyId: string, value: unknown, id?: string) {
     throw new ApiError(502, "Não foi possível validar o atendimento da empresa.");
   return parsed.data;
 }
+const summarySchema = z.object({
+  company_id: z.string().uuid(),
+  total: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+  unassigned: z.number().int().nonnegative(),
+  unread_conversations: z.number().int().nonnegative(),
+  unread_messages: z.number().int().nonnegative(),
+});
+export type ConversationSummary = z.infer<typeof summarySchema>;
 export const conversationsApi = {
-  async list(companyId: string, params: { q?: string; mine?: boolean; offset?: number } = {}) {
+  async summary(companyId: string) {
+    const result = summarySchema.safeParse(await apiRequest("/conversations/summary"));
+    if (!result.success || result.data.company_id !== companyId)
+      throw new ApiError(502, "Não foi possível validar os contadores da central.");
+    return result.data;
+  },
+  async read(companyId: string, id: string, lastMessageId: number) {
+    const result = z
+      .object({
+        company_id: z.string().uuid(),
+        conversation_id: z.string().uuid(),
+        last_message_id: z.number().int().positive(),
+        unread_count: z.number().int().nonnegative(),
+      })
+      .safeParse(await apiRequest(`/conversations/${id}/read`, { last_message_id: lastMessageId }));
+    if (
+      !result.success ||
+      result.data.company_id !== companyId ||
+      result.data.conversation_id !== id
+    )
+      throw new ApiError(502, "Não foi possível validar a leitura do atendimento.");
+    return result.data;
+  },
+  async updates(companyId: string, id: string, after: number) {
+    const result = z
+      .object({
+        conversation: conversationSchema,
+        messages: z.array(messageSchema),
+        has_more: z.boolean(),
+      })
+      .safeParse(await apiRequest(`/conversations/${id}/updates?after=${after}`));
+    if (
+      !result.success ||
+      result.data.messages.some(
+        (message) => message.company_id !== companyId || message.conversation_id !== id,
+      )
+    )
+      throw new ApiError(502, "Não foi possível validar as atualizações do atendimento.");
+    return { ...result.data, conversation: validated(companyId, result.data.conversation, id) };
+  },
+
+  async list(
+    companyId: string,
+    params: { q?: string; mine?: boolean; offset?: number; unreadOnly?: boolean } = {},
+  ) {
     const search = new URLSearchParams({
       limit: "100",
       q: params.q ?? "",
       mine: String(params.mine ?? false),
+      unread_only: String(params.unreadOnly ?? false),
       offset: String(params.offset ?? 0),
     });
     const response = z
@@ -187,4 +245,11 @@ export function conversationTime(value: number) {
     minute: "2-digit",
     timeZone: "America/Sao_Paulo",
   }).format(new Date(value * 1000));
+}
+
+export function handlingTime(seconds: number | null) {
+  if (seconds === null) return "Aguardando resposta";
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min`;
+  return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}min`;
 }

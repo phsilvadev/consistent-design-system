@@ -54,3 +54,22 @@ it("rejeita mensagem vinculada a outra conversa", async () => {
     conversationsApi.messages(conversationFixture.company_id, conversationFixture.id),
   ).rejects.toThrow("validar o histórico");
 });
+
+it("rejeita confirmação de leitura de outra conversa", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          company_id: conversationFixture.company_id,
+          conversation_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          last_message_id: 8,
+          unread_count: 0,
+        }),
+      ),
+    ),
+  );
+  await expect(
+    conversationsApi.read(conversationFixture.company_id, conversationFixture.id, 8),
+  ).rejects.toThrow("validar a leitura");
+});

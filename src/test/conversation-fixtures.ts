@@ -17,4 +17,8 @@ export const conversationFixture: Conversation = {
   updated_at: 1700000000,
   closed_at: null,
   version: 1,
+  unread_count: 0,
+  first_response_at: null,
+  first_response_seconds: null,
+  handling_seconds: 0,
 };

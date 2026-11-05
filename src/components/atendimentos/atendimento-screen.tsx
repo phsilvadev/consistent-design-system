@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, type FormEvent, type DragEvent } from "react";
+import { useVisiblePolling } from "@/hooks/use-visible-polling";
 import { useRouter } from "next/navigation";
 import {
   Plus,
@@ -21,6 +22,8 @@ import {
   conversationStatuses,
   statusLabels,
   conversationTime,
+  handlingTime,
+  type ConversationSummary,
   type Conversation,
   type ConversationMessage,
   type ConversationStatus,
@@ -82,6 +85,18 @@ export function AtendimentoScreen() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
   const [mine, setMine] = useState(false);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [summary, setSummary] = useState<ConversationSummary | null>(null);
+  const [syncError, setSyncError] = useState("");
+  const [lastSync, setLastSync] = useState<number | null>(null);
+  const historyContainer = useRef<HTMLDivElement>(null);
+  const followLatest = useRef(true);
+  const previousNewest = useRef(0);
+  const [newRecords, setNewRecords] = useState(false);
+  const readCursor = useRef<Record<string, number>>({});
+  const reading = useRef(false);
+  const mutationEpoch = useRef(0);
+  const mutating = useRef(false);
   const [revision, setRevision] = useState(0);
   const [pageBusy, setPageBusy] = useState(false);
   const [assignees, setAssignees] = useState<Assignee[]>([]);
@@ -122,7 +137,7 @@ export function AtendimentoScreen() {
     setLoading(true);
     setError("");
     conversationsApi
-      .list(tenant.id, { q: search, mine })
+      .list(tenant.id, { q: search, mine, unreadOnly })
       .then((result) => {
         if (alive) {
           setItems(result.items);
@@ -142,7 +157,7 @@ export function AtendimentoScreen() {
     return () => {
       alive = false;
     };
-  }, [tenant.id, search, mine, revision]);
+  }, [tenant.id, search, mine, unreadOnly, revision]);
   useEffect(() => {
     let alive = true;
     setRosterError("");
@@ -167,7 +182,6 @@ export function AtendimentoScreen() {
       return;
     }
     setDetailLoading(true);
-    setDetailError("");
     Promise.all([
       conversationsApi.get(tenant.id, selectedId),
       conversationsApi.messages(tenant.id, selectedId),
@@ -194,7 +208,12 @@ export function AtendimentoScreen() {
     };
   }, [tenant.id, selectedId, detailRevision]);
   function open(id: string | null) {
+    mutationEpoch.current += 1;
     activeSelection.current = id;
+    followLatest.current = true;
+    previousNewest.current = 0;
+    setNewRecords(false);
+    setDetailError("");
     setSelectedId(id);
     setDraft("");
     messageRequest.current = null;
@@ -215,7 +234,7 @@ export function AtendimentoScreen() {
   }
   async function create(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (createBusy) return;
+    if (createBusy || mutating.current) return;
     const form = new FormData(event.currentTarget);
     const body = {
       customer_name: String(form.get("name") ?? "").trim(),
@@ -228,6 +247,8 @@ export function AtendimentoScreen() {
     const signature = JSON.stringify(body);
     if (createRequest.current?.signature !== signature)
       createRequest.current = { signature, id: crypto.randomUUID() };
+    mutationEpoch.current += 1;
+    mutating.current = true;
     setCreateBusy(true);
     setCreateError("");
     try {
@@ -245,6 +266,7 @@ export function AtendimentoScreen() {
     } catch (e) {
       setCreateError(failed(e));
     } finally {
+      mutating.current = false;
       setCreateBusy(false);
     }
   }
@@ -252,7 +274,9 @@ export function AtendimentoScreen() {
     conversation: Conversation,
     changes: { status?: ConversationStatus; assigned_user_id?: string | null },
   ) {
-    if (detailBusy) return;
+    if (detailBusy || mutating.current) return;
+    mutationEpoch.current += 1;
+    mutating.current = true;
     setDetailBusy(true);
     setDetailError("");
     setError("");
@@ -273,16 +297,19 @@ export function AtendimentoScreen() {
       if (selectedId === conversation.id) setDetailError(text);
       else setError(text);
     } finally {
+      mutating.current = false;
       setDetailBusy(false);
     }
   }
   async function record(event: FormEvent) {
     event.preventDefault();
-    if (!selected || detailBusy || !draft.trim()) return;
+    if (!selected || detailBusy || mutating.current || !draft.trim()) return;
     const body = draft.trim();
     const signature = JSON.stringify({ id: selected.id, body, kind });
     if (messageRequest.current?.signature !== signature)
       messageRequest.current = { signature, id: crypto.randomUUID() };
+    mutationEpoch.current += 1;
+    mutating.current = true;
     setDetailBusy(true);
     setDetailError("");
     try {
@@ -303,6 +330,7 @@ export function AtendimentoScreen() {
     } catch (e) {
       setDetailError(failed(e));
     } finally {
+      mutating.current = false;
       setDetailBusy(false);
     }
   }
@@ -331,6 +359,7 @@ export function AtendimentoScreen() {
       const result = await conversationsApi.list(tenant.id, {
         q: search,
         mine,
+        unreadOnly,
         offset: items.length,
       });
       if (generation !== listGeneration.current) return;
@@ -345,6 +374,146 @@ export function AtendimentoScreen() {
       setPageBusy(false);
     }
   }
+  useEffect(() => {
+    let alive = true;
+    conversationsApi
+      .summary(tenant.id)
+      .then((result) => {
+        if (alive) setSummary(result);
+      })
+      .catch(() => {
+        if (alive) setSyncError("Não foi possível atualizar os contadores.");
+      });
+    return () => {
+      alive = false;
+    };
+  }, [tenant.id, revision]);
+  async function acknowledge() {
+    const id = activeSelection.current;
+    if (
+      !id ||
+      !selected ||
+      selected.id !== id ||
+      detailLoading ||
+      reading.current ||
+      document.visibilityState !== "visible" ||
+      !followLatest.current ||
+      !messages.length
+    )
+      return;
+    const latest = Math.max(...messages.map((message) => message.id));
+    if ((readCursor.current[id] ?? 0) >= latest) return;
+    reading.current = true;
+    mutationEpoch.current += 1;
+    try {
+      const result = await conversationsApi.read(tenant.id, id, latest);
+      if (activeSelection.current !== id) return;
+      readCursor.current[id] = result.last_message_id;
+      setSelected((current) =>
+        current?.id === id ? { ...current, unread_count: result.unread_count } : current,
+      );
+      setItems((current) =>
+        current.map((item) =>
+          item.id === id ? { ...item, unread_count: result.unread_count } : item,
+        ),
+      );
+      const counters = await conversationsApi.summary(tenant.id);
+      if (activeSelection.current === id) setSummary(counters);
+    } catch (e) {
+      if (activeSelection.current === id) setSyncError(errorText(e));
+    } finally {
+      reading.current = false;
+    }
+  }
+  useEffect(() => {
+    const container = historyContainer.current;
+    if (!container || detailLoading) return;
+    const newest = Math.max(0, ...messages.map((message) => message.id));
+    const appended = newest > previousNewest.current;
+    previousNewest.current = newest;
+    if (followLatest.current) {
+      container.scrollTop = container.scrollHeight;
+      void acknowledge();
+    } else if (appended) setNewRecords(true);
+    // The read cursor follows the messages actually displayed, never a server-side future cursor.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, detailLoading, selectedId]);
+  useVisiblePolling(async (isActive) => {
+    if (loading || mutating.current || detailLoading) return;
+    const epoch = mutationEpoch.current;
+    const generation = listGeneration.current;
+    const id = activeSelection.current;
+    try {
+      const [first, counters, updates] = await Promise.all([
+        conversationsApi.list(tenant.id, { q: search, mine, unreadOnly }),
+        conversationsApi.summary(tenant.id),
+        id && selected
+          ? conversationsApi
+              .updates(tenant.id, id, Math.max(0, ...messages.map((message) => message.id)))
+              .catch((e) => {
+                if (e instanceof ApiError && (e.status === 404 || e.status === 403))
+                  return { denied: true as const };
+                throw e;
+              })
+          : Promise.resolve(null),
+      ]);
+      const refreshed = [...first.items];
+      while (refreshed.length < Math.min(items.length, first.total)) {
+        const page = await conversationsApi.list(tenant.id, {
+          q: search,
+          mine,
+          unreadOnly,
+          offset: refreshed.length,
+        });
+        if (!page.items.length) break;
+        refreshed.push(...page.items);
+      }
+      if (
+        !isActive() ||
+        mutating.current ||
+        epoch !== mutationEpoch.current ||
+        generation !== listGeneration.current ||
+        id !== activeSelection.current
+      )
+        return;
+      setItems([...new Map(refreshed.map((item) => [item.id, item])).values()]);
+      setTotal(first.total);
+      setSummary(counters);
+      setSyncError("");
+      setLastSync(Date.now());
+      if (updates && "denied" in updates) {
+        setSelected(null);
+        setMessages([]);
+        setDetailError(
+          "Este atendimento foi transferido ou não está mais disponível para seu perfil.",
+        );
+      } else if (updates) {
+        setSelected(updates.conversation);
+        if (updates.messages.length)
+          setMessages((current) =>
+            [
+              ...new Map(
+                [...current, ...updates.messages].map((message) => [message.id, message]),
+              ).values(),
+            ].sort((a, b) => a.id - b.id),
+          );
+        else void acknowledge();
+      }
+    } catch (e) {
+      if (!isActive()) return;
+      if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+        setItems([]);
+        setTotal(0);
+        setSummary(null);
+        setSelected(null);
+        setMessages([]);
+        setDetailError("Seu acesso à central foi interrompido. Atualize sua sessão.");
+        if (e.status === 401) router.replace("/login");
+        router.refresh();
+      }
+      setSyncError("A atualização automática falhou. Tentaremos novamente em instantes.");
+    }
+  });
   const canManageSelected = !!selected && (manager || selected.assigned_user?.id === user.id);
   const canRecord =
     canManageSelected && selected && !["closed", "converted", "ai"].includes(selected.status);
@@ -384,6 +553,42 @@ export function AtendimentoScreen() {
       <div role="status" aria-live="polite" className="sr-only">
         {announcement}
       </div>
+      <section aria-label="Resumo da central" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {[
+          { label: "Em andamento", value: summary?.active },
+          { label: "Sem responsável", value: summary?.unassigned },
+          { label: "Com registros não lidos", value: summary?.unread_conversations },
+          { label: "Registros não lidos", value: summary?.unread_messages },
+        ].map((metric) => (
+          <div key={metric.label} className="rounded-2xl border bg-card px-5 py-4">
+            <p className="text-xs text-muted-foreground">{metric.label}</p>
+            {metric.value === undefined ? (
+              <Skeleton className="mt-2 h-7 w-12" />
+            ) : (
+              <p
+                className="mt-2 text-2xl font-semibold"
+                aria-label={`${metric.label}: ${metric.value}`}
+              >
+                {metric.value}
+              </p>
+            )}
+          </div>
+        ))}
+      </section>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+        <p role="status">{syncError || "Atualização automática a cada 5 segundos"}</p>
+        {lastSync && (
+          <span>
+            Última atualização:{" "}
+            {new Date(lastSync).toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              timeZone: "America/Sao_Paulo",
+            })}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-card p-4">
         <div className="relative min-w-48 flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -405,6 +610,14 @@ export function AtendimentoScreen() {
           <option value="all">Todos os disponíveis</option>
           <option value="mine">Meus atendimentos</option>
         </select>
+        <Button
+          variant={unreadOnly ? "default" : "outline"}
+          className="rounded-xl"
+          aria-pressed={unreadOnly}
+          onClick={() => setUnreadOnly((current) => !current)}
+        >
+          Não lidos{summary ? ` (${summary.unread_conversations})` : ""}
+        </Button>
         <Button
           variant="outline"
           size="icon"
@@ -447,12 +660,12 @@ export function AtendimentoScreen() {
         <section className="rounded-2xl border border-dashed bg-card px-6 py-16 text-center">
           <Headphones className="mx-auto mb-4 h-9 w-9 text-muted-foreground" />
           <h2 className="text-base font-semibold">
-            {search || mine
+            {search || mine || unreadOnly
               ? "Nenhum atendimento encontrado"
               : "Sua central está pronta para começar"}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            {search || mine
+            {search || mine || unreadOnly
               ? "Tente outro filtro ou busca."
               : "Crie o primeiro atendimento para registrar uma solicitação."}
           </p>
@@ -497,7 +710,17 @@ export function AtendimentoScreen() {
                             {initials(item.customer.name)}
                           </span>
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-semibold">{item.customer.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="truncate text-sm font-semibold">{item.customer.name}</p>
+                              {item.unread_count > 0 && (
+                                <span
+                                  aria-label={`${item.unread_count} registros não lidos`}
+                                  className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold text-primary-foreground"
+                                >
+                                  {item.unread_count}
+                                </span>
+                              )}
+                            </div>
                             <p className="mt-0.5 truncate text-xs text-muted-foreground">
                               {item.customer.business_name || item.customer.phone}
                             </p>
@@ -805,7 +1028,51 @@ export function AtendimentoScreen() {
                   </Button>
                 </div>
               </div>
-              <div className="min-h-0 flex-1 overflow-y-auto bg-muted/15 p-5">
+              <div className="flex flex-wrap gap-x-6 gap-y-2 border-b px-5 py-3 text-xs text-muted-foreground">
+                <p>
+                  Primeira resposta manual:{" "}
+                  <strong className="font-medium text-foreground">
+                    {handlingTime(selected.first_response_seconds)}
+                  </strong>
+                </p>
+                <p>
+                  Tempo em atendimento:{" "}
+                  <strong className="font-medium text-foreground">
+                    {handlingTime(selected.handling_seconds)}
+                  </strong>
+                </p>
+              </div>
+              {newRecords && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mx-auto my-2 rounded-full"
+                  onClick={() => {
+                    followLatest.current = true;
+                    setNewRecords(false);
+                    const container = historyContainer.current;
+                    if (container) container.scrollTop = container.scrollHeight;
+                    void acknowledge();
+                  }}
+                >
+                  Ir para os novos registros
+                </Button>
+              )}
+              <div
+                ref={historyContainer}
+                onScroll={() => {
+                  const container = historyContainer.current;
+                  if (!container) return;
+                  followLatest.current =
+                    container.scrollHeight - container.scrollTop - container.clientHeight < 60;
+                  if (followLatest.current) {
+                    setNewRecords(false);
+                    void acknowledge();
+                  }
+                }}
+                className="min-h-0 flex-1 overflow-y-auto bg-muted/15 p-5"
+              >
                 <div role="log" aria-label="Histórico de mensagens" className="space-y-4">
                   {nextBefore && (
                     <Button

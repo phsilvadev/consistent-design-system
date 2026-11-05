@@ -22,23 +22,30 @@ function setup(role = testWorkspaceContext.user.role) {
 function stub(items = [conversationFixture]) {
   vi.stubGlobal(
     "fetch",
-    vi
-      .fn()
-      .mockImplementation((path: string) =>
-        Promise.resolve(
-          new Response(
-            JSON.stringify(
-              path.includes("/assignees")
+    vi.fn().mockImplementation((path: string) =>
+      Promise.resolve(
+        new Response(
+          JSON.stringify(
+            path.includes("/summary")
+              ? {
+                  company_id: conversationFixture.company_id,
+                  total: items.length,
+                  active: items.length,
+                  unassigned: 0,
+                  unread_conversations: 0,
+                  unread_messages: 0,
+                }
+              : path.includes("/assignees")
                 ? [conversationFixture.assigned_user]
                 : path.includes("/messages")
                   ? { items: [], next_before: null }
                   : path.includes(conversationFixture.id)
                     ? conversationFixture
                     : { items, total: items.length },
-            ),
           ),
         ),
       ),
+    ),
   );
 }
 describe("central com persistência via API", () => {
