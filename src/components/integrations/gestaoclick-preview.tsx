@@ -1,7 +1,16 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Database,
+  KeyRound,
+  Link2,
+  History,
+  Info,
+  RefreshCw,
+} from "lucide-react";
 import { useTenant } from "@/lib/tenant/provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +88,10 @@ export function GestaoClickPreview() {
           <div className="flex-1 space-y-4 overflow-y-auto bg-[#f6f6f7] p-5 sm:px-6">
             <section className="rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
               <div className="mb-4 flex items-center justify-between gap-4">
-                <h3 className="text-[15px] font-bold tracking-tight">Credenciais</h3>
+                <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                  <KeyRound className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                  Credenciais
+                </h3>
                 <span className="flex items-center gap-2 text-[11px] text-neutral-500">
                   <span className="h-1.5 w-1.5 rounded-full bg-neutral-500" />
                   Cadastradas
@@ -101,7 +113,10 @@ export function GestaoClickPreview() {
             <section className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className="text-[15px] font-bold tracking-tight">Validar acesso</h3>
+                  <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                    <Link2 className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                    Validar acesso
+                  </h3>
                   <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
                     Valide o acesso antes de sincronizar os dados.
                   </p>
@@ -145,37 +160,46 @@ export function GestaoClickPreview() {
                 {tested ? "Testar novamente" : "Testar conexão"}
               </Button>
             </section>
-            <section className="space-y-4 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-              <div>
-                <h3 className="text-[15px] font-bold tracking-tight">Dados para sincronizar</h3>
-                <p className="mt-1.5 text-xs leading-relaxed text-neutral-500">
-                  Selecione os dados que deseja importar do GestãoClick.
-                </p>
+            <section
+              aria-label="Sincronização de dados"
+              className="space-y-6 rounded-2xl border border-neutral-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.02)]"
+            >
+              <div className="flex items-start gap-3">
+                <Database className="mt-0.5 h-6 w-6 shrink-0 text-neutral-600" strokeWidth={1.6} />
+                <div>
+                  <h3 className="text-[16px] font-bold tracking-tight">Sincronização de dados</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-neutral-500">
+                    Escolha o que será consultado no GestãoClick.
+                  </p>
+                </div>
               </div>
-              <div className="divide-y divide-neutral-100 overflow-hidden rounded-xl border border-neutral-200">
+              <div className="grid gap-4 divide-y divide-neutral-200 sm:grid-cols-2 sm:gap-0 sm:divide-x sm:divide-y-0">
                 {[
                   { title: "Produtos", text: "Catálogo, códigos e unidades" },
                   { title: "Clientes", text: "Cadastros e contatos comerciais" },
-                ].map(({ title, text }) => (
+                ].map(({ title, text }, index) => (
                   <label
                     key={title}
-                    className={`flex items-center gap-3 px-4 py-3.5 ${tested ? "" : "opacity-50"}`}
+                    className={`flex items-start gap-3 ${index === 1 ? "pt-4 sm:pl-5 sm:pt-0" : "sm:pr-5"} ${tested ? "" : "opacity-60"}`}
                   >
                     <input
                       type="checkbox"
                       defaultChecked
                       disabled={!tested || busy}
-                      className="h-3.5 w-3.5 accent-neutral-900"
+                      className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-neutral-800"
                     />
-                    <span className="flex flex-1 flex-wrap items-center justify-between gap-1.5">
-                      <span className="text-xs font-medium">{title}</span>
-                      <span className="text-[11px] text-neutral-500">{text}</span>
+                    <span>
+                      <span className="block text-sm font-semibold leading-5">{title}</span>
+                      <span className="mt-0.5 block text-xs leading-relaxed text-neutral-500">
+                        {text}
+                      </span>
                     </span>
                   </label>
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[11px] text-neutral-500">
+                <p className="flex items-center gap-2 text-xs text-neutral-500">
+                  <Info className="h-4 w-4 shrink-0" strokeWidth={1.7} />
                   {synced
                     ? "Simulação concluída · nenhum dado importado"
                     : "Nenhuma sincronização realizada"}
@@ -186,12 +210,20 @@ export function GestaoClickPreview() {
                   disabled={!tested || busy}
                   onClick={() => simulate("sync")}
                 >
-                  {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}Sincronizar agora
+                  {busy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" strokeWidth={1.8} />
+                  )}
+                  Sincronizar agora
                 </Button>
               </div>
             </section>
             <section className="space-y-2 rounded-2xl border border-neutral-200/80 bg-white p-5">
-              <h3 className="text-[15px] font-bold tracking-tight">Atividade recente</h3>
+              <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                <History className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                Atividade recente
+              </h3>
               <p className="text-xs leading-relaxed text-neutral-500">
                 {synced
                   ? "Simulação de sincronização concluída. Nenhum registro real foi alterado."

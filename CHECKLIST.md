@@ -366,3 +366,8 @@ Validado: lint/build e E2E da prévia aprovados. Simulações e bloqueio inicial
 - [x] Cards compactos com fundo suave, títulos fortes e ação principal laranja; preservar prévia local e gerar print.
 
 Validado: lint/build e E2E da prévia aprovados, sem chamadas de integração e mobile sem overflow. Prints compactos desktop/mobile gerados. Backend inalterado.
+
+### Sincronização conforme referência
+- [x] Adicionar ícones monocromáticos e organizar Produtos/Clientes em colunas com divisória, status inferior e botão de sincronização.
+
+Validado: lint/build e E2E da prévia aprovados. Em desktop, Produtos/Clientes lado a lado; em mobile, empilhados. Capturas da tela validada simulada e detalhe da sincronização geradas. Ícones em cinza sem fundos coloridos e ação laranja preservada. Nenhum backend alterado.

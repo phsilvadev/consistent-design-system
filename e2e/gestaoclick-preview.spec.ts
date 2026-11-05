@@ -33,6 +33,9 @@ test("Prévia GestãoClick simula etapas sem acessar APIs de integração", asyn
     path: "/workspace/atendehub-gestaoclick-previa-validada.png",
     fullPage: true,
   });
+  await page
+    .getByRole("region", { name: "Sincronização de dados", exact: true })
+    .screenshot({ path: "/workspace/atendehub-gestaoclick-sincronizacao-detalhe.png" });
   await page.getByRole("button", { name: /Sincronizar agora/ }).click();
   await expect(
     page.getByText("Simulação concluída · nenhum dado importado", { exact: true }),
