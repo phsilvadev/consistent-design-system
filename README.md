@@ -131,3 +131,6 @@ O hook `useVisiblePolling` sincroniza a cada 5 segundos somente com a aba visív
 
 ### Formato de exibição da conversa
 A conversa abre em Modal por padrão. O seletor no cabeçalho, alinhado ao fechar, permite Tela cheia e Barra lateral sem reiniciar o histórico ou apagar o rascunho. A preferência fica neste navegador por usuário/empresa e é independente do editor de usuários. O componente DisplayModePicker é compartilhado com Configurações → Equipe. Nenhuma alteração no backend.
+
+### Divisão cliente/plataforma para conhecimento
+O WhatsApp operacional pertence a cada distribuidora, junto de sua integração ERP. A plataforma utiliza somente arquivos autorizados para curadoria do conhecimento comum. O backend passou a oferecer sessão de plataforma separada e APIs de importação JSON, revisão, versões e publicação. O frontend do superadministrador e o encaminhamento de suas rotas/cookie pelo BFF ainda não foram implementados; o login de cliente continua sem privilégios globais. A tela atual de Integrações permanece demonstrativa e não comprova uma conexão operacional. Consulte a documentação no repositório do backend.
