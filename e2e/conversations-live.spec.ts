@@ -132,7 +132,12 @@ test("Central sincroniza duas sessões, preserva rascunho e mantém leitura indi
   await employee.screenshot({ path: test.info().outputPath("conversation-live-desktop.png") });
   await employee.setViewportSize({ width: 390, height: 844 });
   await expect
-    .poll(() => panel.evaluate((el) => Math.abs(el.getBoundingClientRect().x) < 1))
+    .poll(() =>
+      panel.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return r.x >= 0 && r.right <= innerWidth;
+      }),
+    )
     .toBe(true);
   await employee.screenshot({ path: test.info().outputPath("conversation-live-mobile.png") });
   const current = await (

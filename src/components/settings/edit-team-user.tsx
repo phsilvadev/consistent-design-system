@@ -1,6 +1,6 @@
 "use client";
 import { useState, type FormEvent, type CSSProperties } from "react";
-import { PanelsTopLeft, Maximize2, PanelRight, Check, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,19 +9,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DisplayModePicker, type DisplayMode as Mode } from "@/components/ui/display-mode-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { teamApi, roleLabels, type TeamUser, type TeamRole } from "@/lib/auth/team";
 import { ApiError } from "@/lib/auth/client";
 import { useRouter } from "next/navigation";
 
-type Mode = "modal" | "fullscreen" | "aside";
-const modes = [
-  { id: "modal", label: "Modal", icon: PanelsTopLeft },
-  { id: "fullscreen", label: "Tela cheia", icon: Maximize2 },
-  { id: "aside", label: "Barra lateral", icon: PanelRight },
-] as const;
 const layouts: Record<Mode, CSSProperties> = {
   modal: { maxWidth: "min(36rem, calc(100vw - 2rem))", maxHeight: "calc(100svh - 2rem)" },
   fullscreen: {
@@ -56,7 +50,6 @@ export function EditTeamUser({
 }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("modal");
-  const [chooser, setChooser] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [name, setName] = useState(member.name);
@@ -121,7 +114,6 @@ export function EditTeamUser({
         onOpenChange={(next) => {
           if (!busy) {
             setOpen(next);
-            setChooser(false);
           }
         }}
       >
@@ -141,56 +133,17 @@ export function EditTeamUser({
                 Atualize os dados e as permissões de acesso.
               </DialogDescription>
             </DialogHeader>
-            <Popover open={chooser} onOpenChange={setChooser}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute right-10 top-2 h-8 w-8 rounded-lg"
-                  aria-label="Modo de exibição"
-                  title="Modo de exibição"
-                >
-                  <PanelsTopLeft className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-[282px] rounded-2xl p-2">
-                <p className="px-2 pb-2 pt-1 text-xs font-medium text-muted-foreground">
-                  Abrir formulário como
-                </p>
-                <div
-                  className="grid grid-cols-3 gap-1"
-                  role="group"
-                  aria-label="Formato do formulário"
-                >
-                  {modes.map((option) => (
-                    <button
-                      type="button"
-                      key={option.id}
-                      aria-pressed={mode === option.id}
-                      onClick={() => {
-                        setMode(option.id);
-                        setChooser(false);
-                        try {
-                          localStorage.setItem("atendehub:user-editor-mode", option.id);
-                        } catch {
-                          /* Preference is optional. */
-                        }
-                      }}
-                      className={`relative flex flex-col items-center gap-2 rounded-xl px-1 py-3 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${mode === option.id ? "bg-primary/15 text-foreground" : "text-muted-foreground hover:bg-muted"}`}
-                    >
-                      <span className="flex h-11 w-16 items-center justify-center rounded-md border bg-background shadow-sm">
-                        <option.icon className="h-6 w-6" />
-                      </span>
-                      {option.label}
-                      {mode === option.id && (
-                        <Check className="absolute right-1 top-1 h-3 w-3 text-primary" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <DisplayModePicker
+              value={mode}
+              onChange={(next) => {
+                setMode(next);
+                try {
+                  localStorage.setItem("atendehub:user-editor-mode", next);
+                } catch {
+                  /* Preference is optional. */
+                }
+              }}
+            />
           </div>
           <form onSubmit={submit} className="mx-auto flex w-full max-w-3xl flex-1 flex-col p-6">
             <div className="mb-6 flex items-center gap-3 rounded-xl bg-muted/40 p-4">

@@ -293,3 +293,9 @@ Validação da Fase 02 manual: 86 testes Vitest, 44 Pytest e 9 E2E aprovados, al
 - [x] Atualizar documentação/checklist e capturar prints desktop/mobile.
 
 Validação da conclusão do núcleo local: 88 testes Vitest, 49 testes Pytest e 10 E2E aprovados, com build/lint. Inclui disputa de atribuição e mensagens/leituras concorrentes por threads reais, cursor monotônico, duas sessões no navegador, rascunho durante atualização e limpeza do painel após transferência. Migration downgrade/upgrade preservou mensagens e preencheu métricas; aplicada no SQLite local. Prints de contadores e histórico desktop/mobile gerados com dados de teste. Fase 02 não é marcada integralmente concluída enquanto as dependências externas listadas permanecerem abertas. Nenhum Docker executado.
+
+### Exibição da conversa
+- [x] Reutilizar seletor Modal/Tela cheia/Barra lateral na conversa, alinhado ao fechar, preservando rascunho/histórico e preferência individual no navegador.
+- [x] Validar os três formatos, persistência e regressão da edição de usuário; gerar prints.
+
+Validação: 88 testes Vitest, build e lint aprovados; cenários E2E de central, duas sessões e equipe aprovados. Dimensões, preservação do rascunho/histórico e preferência após reload verificadas; prints dos três modos e seletor gerados. Backend sem alterações.

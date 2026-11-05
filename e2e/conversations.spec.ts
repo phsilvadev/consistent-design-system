@@ -49,6 +49,7 @@ test("Central manual persiste atendimento, responsável, status e histórico", a
   await create.getByRole("button", { name: "Criar atendimento", exact: true }).click();
   const panel = page.getByRole("dialog", { name: "Carlos Mendes", exact: true });
   await expect(panel).toBeVisible();
+  await expect(panel).toHaveAttribute("data-display-mode", "modal");
   await expect(panel.getByRole("log")).toContainText("Preciso de 20 barras");
   await panel
     .getByRole("textbox", { name: "Mensagem do atendimento", exact: true })
@@ -63,6 +64,52 @@ test("Central manual persiste atendimento, responsável, status e histórico", a
     .fill("Cliente prefere retirada. Validar disponibilidade antes de oferecer prazo.");
   await panel.getByRole("button", { name: "Registrar", exact: true }).click();
   await expect(panel.getByRole("log")).toContainText("Cliente prefere retirada");
+  const draft = panel.getByRole("textbox", { name: "Mensagem do atendimento", exact: true });
+  await draft.fill("Rascunho preservado ao trocar a visualização.");
+  await panel.getByRole("button", { name: "Modo de exibição", exact: true }).click();
+  await page.getByRole("group", { name: "Formato da conversa", exact: true }).waitFor();
+  await page.screenshot({
+    path: test.info().outputPath("conversation-mode-picker.png"),
+    animations: "disabled",
+  });
+  await page.getByRole("button", { name: "Modal", exact: true }).click();
+  async function captureMode(name: string) {
+    await panel.evaluate(async (el) => {
+      await Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished.catch(() => {})));
+    });
+    await page.screenshot({ path: test.info().outputPath(`conversation-mode-${name}.png`) });
+  }
+  await captureMode("modal");
+  for (const [label, mode] of [
+    ["Tela cheia", "fullscreen"],
+    ["Barra lateral", "aside"],
+  ] as const) {
+    await panel.getByRole("button", { name: "Modo de exibição", exact: true }).click();
+    await page.getByRole("button", { name: label, exact: true }).click();
+    await expect(panel).toHaveAttribute("data-display-mode", mode);
+    await expect(draft).toHaveValue("Rascunho preservado ao trocar a visualização.");
+    await expect(panel.getByRole("log")).toContainText("Cliente prefere retirada");
+    if (mode === "fullscreen")
+      await expect
+        .poll(() =>
+          panel.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            return (
+              Math.abs(r.x) < 1 &&
+              Math.abs(r.y) < 1 &&
+              Math.abs(r.width - innerWidth) < 1 &&
+              Math.abs(r.height - innerHeight) < 1
+            );
+          }),
+        )
+        .toBe(true);
+    else
+      expect(
+        await panel.evaluate((el) => Math.abs(el.getBoundingClientRect().right - innerWidth) < 1),
+      ).toBe(true);
+    await captureMode(mode);
+  }
+
   await panel
     .getByRole("combobox", { name: "Status do atendimento", exact: true })
     .selectOption("quoting");
@@ -71,6 +118,7 @@ test("Central manual persiste atendimento, responsável, status e histórico", a
   ).toHaveValue("quoting");
   await page.reload();
   await expect(panel).toBeVisible();
+  await expect(panel).toHaveAttribute("data-display-mode", "aside");
   await expect(panel.getByRole("log")).toContainText("Cliente prefere retirada");
   await expect(
     panel.getByRole("combobox", { name: "Status do atendimento", exact: true }),

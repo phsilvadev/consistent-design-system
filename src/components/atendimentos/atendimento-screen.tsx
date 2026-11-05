@@ -1,5 +1,12 @@
 "use client";
-import { useEffect, useRef, useState, type FormEvent, type DragEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type DragEvent,
+  type CSSProperties,
+} from "react";
 import { useVisiblePolling } from "@/hooks/use-visible-polling";
 import { useRouter } from "next/navigation";
 import {
@@ -39,13 +46,34 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+import { DisplayModePicker, type DisplayMode } from "@/components/ui/display-mode-picker";
+const conversationLayouts: Record<DisplayMode, CSSProperties> = {
+  modal: {
+    width: "min(48rem, calc(100vw - 2rem))",
+    maxWidth: "none",
+    height: "min(56rem, calc(100svh - 2rem))",
+  },
+  fullscreen: {
+    inset: 0,
+    transform: "none",
+    translate: "none",
+    width: "100%",
+    maxWidth: "none",
+    height: "100svh",
+    borderRadius: 0,
+  },
+  aside: {
+    left: "auto",
+    right: 0,
+    top: 0,
+    transform: "none",
+    translate: "none",
+    width: "min(48rem, 100vw)",
+    maxWidth: "none",
+    height: "100svh",
+    borderRadius: 0,
+  },
+};
 const colors: Record<ConversationStatus, string> = {
   new: "bg-slate-400",
   ai: "bg-violet-500",
@@ -77,6 +105,16 @@ function errorText(error: unknown) {
 export function AtendimentoScreen() {
   const { tenant, user } = useTenant();
   const router = useRouter();
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("modal");
+  const displayPreference = `atendehub:${tenant.id}:${user.id}:conversation-mode`;
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(displayPreference);
+      setDisplayMode(saved === "fullscreen" || saved === "aside" ? saved : "modal");
+    } catch {
+      setDisplayMode("modal");
+    }
+  }, [displayPreference]);
   const manager = user.role === "admin" || user.role === "supervisor";
   const [items, setItems] = useState<Conversation[]>([]);
   const [total, setTotal] = useState(0);
@@ -899,23 +937,36 @@ export function AtendimentoScreen() {
           </form>
         </DialogContent>
       </Dialog>
-      <Sheet
+      <Dialog
         open={selectedId !== null}
         onOpenChange={(next) => {
           if (!next && !detailBusy) open(null);
         }}
       >
-        <SheetContent
-          side="right"
-          className="flex h-[100svh] flex-col gap-0 p-0"
-          style={{ width: "min(48rem, 100vw)", maxWidth: "none" }}
+        <DialogContent
+          data-display-mode={displayMode}
+          style={conversationLayouts[displayMode]}
+          className={`flex flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:rounded-2xl ${displayMode !== "modal" ? "translate-x-0 translate-y-0 data-[state=open]:animate-none data-[state=closed]:animate-none" : ""}`}
         >
-          <SheetHeader className="border-b p-6 pr-12 text-left">
-            <SheetTitle>{selected?.customer.name ?? "Atendimento"}</SheetTitle>
-            <SheetDescription>
+          <DialogHeader className="border-b p-6 pr-24 text-left sm:text-left">
+            <DialogTitle>{selected?.customer.name ?? "Atendimento"}</DialogTitle>
+            <DialogDescription>
               {selected?.subject ?? "Histórico e detalhes do atendimento"}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
+          <DisplayModePicker
+            value={displayMode}
+            title="Abrir conversa como"
+            groupLabel="Formato da conversa"
+            onChange={(mode) => {
+              setDisplayMode(mode);
+              try {
+                localStorage.setItem(displayPreference, mode);
+              } catch {
+                /* Preference is optional. */
+              }
+            }}
+          />
           {detailLoading ? (
             <div role="status" aria-label="Carregando histórico" className="space-y-5 p-6">
               <Skeleton className="h-20 rounded-xl" />
@@ -1196,8 +1247,8 @@ export function AtendimentoScreen() {
               </Button>
             </div>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
