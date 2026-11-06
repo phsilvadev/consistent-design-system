@@ -27,6 +27,7 @@ export async function productSync(
 }
 const catalogSchema = z.object({
   company_id: z.string().uuid(),
+  image_upload_enabled: z.boolean().default(false),
   total: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   page_size: z.number().int().positive(),
@@ -41,6 +42,9 @@ const catalogSchema = z.object({
       active: z.boolean(),
       has_variations: z.boolean(),
       synced_at: z.number().int(),
+      has_image: z.boolean().default(false),
+      image_version: z.number().int().nonnegative().default(0),
+      image_updated_at: z.number().int().nullable().default(null),
     }),
   ),
 });
@@ -51,5 +55,50 @@ export async function products(companyId: string, q: string, page: number) {
   );
   if (!parsed.success || parsed.data.company_id !== companyId)
     throw new ApiError(502, "Não foi possível validar o catálogo desta empresa.");
+  return parsed.data;
+}
+
+export type CatalogProduct = Catalog["items"][number];
+const imageResultSchema = z.object({
+  company_id: z.string().uuid(),
+  product_id: z.string().uuid(),
+  has_image: z.literal(true),
+  image_version: z.number().int().positive(),
+  image_updated_at: z.number().int(),
+});
+export async function uploadProductImage(companyId: string, product: CatalogProduct, file: File) {
+  let response: Response;
+  try {
+    response = await fetch(
+      `/api/v1/products/${product.id}/image?version=${product.image_version}`,
+      {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: { "Content-Type": file.type },
+        body: file,
+      },
+    );
+  } catch {
+    throw new ApiError(0, "Não foi possível enviar a imagem. Tente novamente.");
+  }
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const detail = data && typeof data === "object" && "detail" in data ? data.detail : null;
+    throw new ApiError(
+      response.status,
+      typeof detail === "string" ? detail : "Não foi possível enviar a imagem.",
+    );
+  }
+  const parsed = imageResultSchema.safeParse(data);
+  if (
+    !parsed.success ||
+    parsed.data.company_id !== companyId ||
+    parsed.data.product_id !== product.id
+  )
+    throw new ApiError(
+      502,
+      "Não foi possível validar a imagem deste produto. Recarregue a listagem.",
+    );
   return parsed.data;
 }

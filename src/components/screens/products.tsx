@@ -1,15 +1,35 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { PackageSearch, Search } from "lucide-react";
+import { PackageSearch, Search, ImageOff, Upload } from "lucide-react";
 import { Dashboard } from "./dashboard";
 import { useTenant } from "@/lib/tenant/provider";
-import { products, type Catalog } from "@/lib/auth/products";
+import { products, type Catalog, type CatalogProduct } from "@/lib/auth/products";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ProductImageUpload } from "@/components/products/image-upload";
 import { Skeleton } from "@/components/ui/skeleton";
+function ProductThumbnail({ product }: { product: CatalogProduct }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-neutral-50 text-neutral-400">
+      {product.has_image && !failed ? (
+        <img
+          src={`/api/v1/products/${product.id}/image?v=${product.image_version}`}
+          alt={`Foto de ${product.name}`}
+          className="h-full w-full object-contain"
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <ImageOff className="h-5 w-5" aria-label={failed ? "Imagem indisponível" : "Sem imagem"} />
+      )}
+    </span>
+  );
+}
 export function ProductsScreen() {
   const { tenant, user } = useTenant();
+  const [imageProduct, setImageProduct] = useState<CatalogProduct | null>(null);
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [revision, setRevision] = useState(0);
@@ -99,7 +119,14 @@ export function ProductsScreen() {
             <table className="w-full text-left text-sm">
               <thead className="border-b bg-neutral-50">
                 <tr>
-                  {["Produto", "Código", "Categoria", "Status"].map((column) => (
+                  {[
+                    "Produto",
+                    "Código",
+                    "Categoria",
+                    "Imagem",
+                    "Status",
+                    ...(user.role === "admin" ? ["Ações"] : []),
+                  ].map((column) => (
                     <th
                       key={column}
                       scope="col"
@@ -114,19 +141,44 @@ export function ProductsScreen() {
                 {data.items.map((item) => (
                   <tr key={item.id}>
                     <td className="min-w-64 px-5 py-4">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="mt-1 text-xs text-neutral-500">
-                        ERP #{item.erp_id}
-                        {item.has_variations ? " · Possui variações no ERP" : ""}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <ProductThumbnail key={`${item.id}-${item.image_version}`} product={item} />
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="mt-1 text-xs text-neutral-500">
+                            ERP #{item.erp_id}
+                            {item.has_variations ? " · Possui variações no ERP" : ""}
+                          </p>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-5 py-4">{item.code || "—"}</td>
                     <td className="px-5 py-4">{item.category || "—"}</td>
+                    <td className="px-5 py-4">
+                      <span className="whitespace-nowrap rounded-full border border-neutral-200 px-2.5 py-1 text-xs text-neutral-500">
+                        {item.has_image ? "Com imagem" : "Sem imagem"}
+                      </span>
+                    </td>
                     <td className="px-5 py-4">
                       <span className="whitespace-nowrap rounded-full bg-neutral-100 px-3 py-1 text-xs">
                         {item.active ? "Ativo" : "Inativo"}
                       </span>
                     </td>
+                    {user.role === "admin" && (
+                      <td className="px-5 py-4">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="whitespace-nowrap rounded-xl text-xs shadow-none"
+                          onClick={() => setImageProduct(item)}
+                          aria-label={`${item.has_image ? "Trocar imagem" : "Adicionar imagem"} de ${item.name}`}
+                        >
+                          <Upload className="mr-2 h-3.5 w-3.5" />
+                          {item.has_image ? "Trocar imagem" : "Adicionar imagem"}
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -166,6 +218,33 @@ export function ProductsScreen() {
           Preços, estoque e unidades comerciais serão disponibilizados em uma próxima etapa. Os
           dados exibidos refletem a última sincronização.
         </p>
+        {imageProduct && (
+          <ProductImageUpload
+            key={imageProduct.id}
+            product={imageProduct}
+            enabled={data?.image_upload_enabled ?? false}
+            onClose={() => setImageProduct(null)}
+            onUploaded={(result) => {
+              setData((previous) =>
+                previous
+                  ? {
+                      ...previous,
+                      items: previous.items.map((item) =>
+                        item.id === result.product_id
+                          ? {
+                              ...item,
+                              has_image: result.has_image,
+                              image_version: result.image_version,
+                              image_updated_at: result.image_updated_at,
+                            }
+                          : item,
+                      ),
+                    }
+                  : previous,
+              );
+            }}
+          />
+        )}
       </main>
     </Dashboard>
   );

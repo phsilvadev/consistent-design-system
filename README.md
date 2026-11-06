@@ -186,3 +186,12 @@ E2E de importação e prints (API real/SQLite temporário + ERP HTTP simulado):
 ```bash
 E2E_GESTAOCLICK_STUB=1 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e -- e2e/gestaoclick-products.spec.ts
 ```
+
+### Imagem própria do produto
+Administradores podem usar **Adicionar imagem** ou **Trocar imagem** no catálogo. Modal com arrastar/soltar, seleção, prévia e envio (JPG/PNG/WebP até 5 MiB), com estados de erro/processamento/sucesso. Miniaturas são lidas por sessão da empresa. A rota binária dedicada mantém o BFF JSON e os limites existentes; nenhuma chave Firebase é necessária no Next. Configure o bucket/identidade somente no backend conforme a documentação de Firebase daquele repositório.
+
+E2E de imagens e prints, sem acessar Firebase real:
+```bash
+BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 E2E_FIREBASE_STORAGE_STUB=1 npm run test:e2e -- e2e/product-images.spec.ts
+```
+A simulação existe somente no runner isolado com SQLite temporário. A API e a validação/reencodificação de arquivos são reais; o SDK Storage é simulado. A imagem de teste em `e2e/fixtures/product-tube.png` é uma ilustração fictícia gerada para validar o fluxo.
