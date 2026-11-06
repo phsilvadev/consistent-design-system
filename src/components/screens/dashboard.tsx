@@ -1,5 +1,6 @@
 "use client";
 
+import { TrialBanner } from "@/components/auth/trial-banner";
 import { PlanSettings } from "@/components/settings/plan-settings";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { TeamSettings } from "@/components/settings/team-settings";
@@ -133,7 +134,7 @@ export function Dashboard({
   children?: ReactNode;
   activePage?: string;
 }) {
-  const { tenant, user, href } = useTenant();
+  const { tenant, user, href, trialEndsAt } = useTenant();
   const [open, setOpen] = useState(true);
   const [teamCount, setTeamCount] = useState<number | null>(null);
   const {
@@ -206,6 +207,7 @@ export function Dashboard({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <TrialBanner endsAt={trialEndsAt} plansHref={href("/configuracoes")} />
         <header
           data-app-header
           className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-card px-4 md:px-8"

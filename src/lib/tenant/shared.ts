@@ -3,7 +3,7 @@ export const ACCESS_TENANT = "acesso";
 
 export type Tenant = { id: string; slug: string; name: string };
 export type TenantUser = { id: string; name: string; role: Identity["user"]["role"] };
-export type TenantContext = { tenant: Tenant; user: TenantUser };
+export type TenantContext = { tenant: Tenant; user: TenantUser; trialEndsAt?: number | undefined };
 
 export function validTenantSlug(value: string): boolean {
   return (
@@ -34,6 +34,7 @@ export function authenticatedContext(identity: Identity): TenantContext {
   if (!identity.user.active || identity.user.company_id !== identity.company.id)
     throw new Error("Vínculo de empresa inválido.");
   return {
+    trialEndsAt: identity.company.plan === "trial" ? identity.company.trial_ends_at : undefined,
     tenant: { id: identity.company.id, slug: identity.company.id, name: identity.company.name },
     user: { id: identity.user.id, name: identity.user.name, role: identity.user.role },
   };

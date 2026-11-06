@@ -429,3 +429,8 @@ Preparação Railway atualizada: chaves reais do Turnstile exclusivas do backend
 - [ ] Habilitar autodeploy GitHub se/quando a autorização de fonte estiver disponível.
 
 Publicado em https://cliente-production-a80d.up.railway.app/login; API pela rede privada, Turnstile real ativado sem modo dummy. Login sem token e origem não autorizada foram recusados. Upload direto não depende do GitHub e novos pushes não publicam automaticamente. Não foram criados usuários comerciais fictícios.
+
+### Faixa do teste gratuito
+- [x] Exibir faixa vermelha no topo do painel com dias restantes da empresa, ocultando para planos pagos; validar e gerar print.
+
+Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API reais e SQLite temporário aprovado. Prints desktop/mobile gerados com cadastro fictício somente no ambiente de teste. Alteração local, ainda sem publicação no Railway.
