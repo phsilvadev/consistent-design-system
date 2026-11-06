@@ -456,6 +456,8 @@ Validação: 115 Vitest, build/TypeScript, ESLint dos arquivos alterados e 2 E2E
 
 ### Central de ajuda e suporte
 - [x] Incluir acesso no rodapé lateral e perfil; página protegida com busca, categorias, FAQ e abertura do chat; testar e gerar prints.
-- [ ] Atualizar Trello, enviar backend/frontend ao Git e publicar no Railway após validação (autorizado pelo usuário).
+- [x] Atualizar Trello, enviar backend/frontend ao Git e publicar no Railway após validação (autorizado pelo usuário).
 
 Validação da Central de Ajuda: 115 Vitest, build/TypeScript e 6 cenários E2E relevantes aprovados (ajuda revalidada após correção da contagem esperada de busca). Busca sem acento, categorias, perguntas, abertura do chat, acesso mobile e isolamento/recusa anônima verificados. Publicação solicitada em andamento; chat segue com respostas de exemplo, sem OpenAI.
+
+Publicação autorizada concluída em 06/11/2026: frontend d138042 e API ceb83dc enviados a origin/development. Railway cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 e API cc810a36-086a-4c3d-ac42-80c652d8fbb5 em SUCCESS. Login 200, ajuda sem sessão 307, BFF Meta sem sessão 401 e readiness PostgreSQL/migrations 200. Trello atualizado: central de ajuda concluída; Meta real bloqueada por App ID/App Secret/Config ID ausentes e IA de suporte em A fazer. Esta publicação sucede a restrição anterior de manter a prévia local, conforme nova autorização expressa do usuário.
