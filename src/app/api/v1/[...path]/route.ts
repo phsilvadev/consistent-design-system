@@ -4,6 +4,10 @@ import { SESSION_COOKIE } from "@/lib/auth/contracts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
+  products: ["GET"],
+  "integrations/gestaoclick/products-sync": ["GET"],
+  "integrations/gestaoclick/products-sync/start": ["POST"],
+  "integrations/gestaoclick/products-sync/next": ["POST"],
   "integrations/gestaoclick/test": ["POST"],
   "integrations/gestaoclick/store": ["POST"],
   "integrations/gestaoclick": ["GET", "POST"],

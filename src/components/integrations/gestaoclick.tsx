@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Boxes, LockKeyhole, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
+import { GestaoClickProducts } from "./gestaoclick-products";
 import { useTenant } from "@/lib/tenant/provider";
 import { gestaoClick, type GestaoClickConfiguration } from "@/lib/auth/gestaoclick";
 import { Button } from "@/components/ui/button";
@@ -244,7 +245,7 @@ export function GestaoClickCard() {
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       Cadastre as credenciais, teste o acesso e escolha a loja da integração. A
-                      sincronização de produtos e clientes ainda não está disponível.
+                      sincronização de produtos está disponível após selecionar a loja.
                     </p>
                   </div>
                   {data?.has_credentials && (
@@ -336,6 +337,14 @@ export function GestaoClickCard() {
                         no ERP podem prevalecer sobre a loja selecionada.
                       </p>
                     </section>
+                  )}
+                  {data?.has_credentials && (
+                    <GestaoClickProducts
+                      version={data.version}
+                      ready={!!data.selected_store_id}
+                      busy={busy}
+                      onBusy={setBusy}
+                    />
                   )}
                   <section className="space-y-5 rounded-2xl border bg-white p-5">
                     <div className="space-y-1.5">

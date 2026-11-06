@@ -178,3 +178,11 @@ BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 npm run test:e2e 
 ```
 
 O mock existe apenas no runner de testes com SQLite temporário; não é um modo da aplicação de produção. OpenAPI recebido e decisões estão documentados em docs/GESTAOCLICK_ACCESS.md no backend.
+
+### Catálogo integrado ao GestãoClick
+Integrações → GestãoClick permite sincronizar produtos da loja salva. O painel consulta o backend real, informa progresso/último sucesso e permite continuar após sair da tela. Produtos utiliza catálogo persistido, busca/paginação e skeleton; não exibe mais amostras fixas. Preços/estoque/unidades ficam para próxima etapa. Testes HTTP do provedor são isolados; não há flag de simulação no backend de produção.
+
+E2E de importação e prints (API real/SQLite temporário + ERP HTTP simulado):
+```bash
+E2E_GESTAOCLICK_STUB=1 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e -- e2e/gestaoclick-products.spec.ts
+```
