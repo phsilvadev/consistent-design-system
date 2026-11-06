@@ -1,4 +1,5 @@
 "use client";
+import { MetaConnect } from "./meta-connect";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   MessageCircle,
@@ -53,6 +54,7 @@ export function OfficialWhatsApp() {
     [revision, setRevision] = useState(0);
   const [phone, setPhone] = useState(""),
     [waba, setWaba] = useState("");
+  const [manualOpen, setManualOpen] = useState(false);
   const tokenRef = useRef<HTMLInputElement>(null);
   const pinRef = useRef<HTMLInputElement>(null);
   const [setupAction, setSetupAction] = useState<"subscribe" | "register" | null>(null);
@@ -217,7 +219,7 @@ export function OfficialWhatsApp() {
               WhatsApp Business oficial
             </SheetTitle>
             <SheetDescription className="mt-1 text-xs text-neutral-500">
-              Cadastre os dados da Meta e valide a conexão da sua empresa.
+              Autorize sua conta Meta para conectar o WhatsApp da sua empresa.
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={submit} className="flex min-h-0 flex-1 flex-col" autoComplete="off">
@@ -250,7 +252,7 @@ export function OfficialWhatsApp() {
                             Etapas para colocar o canal em operação
                           </h3>
                           <p className="mt-1 text-xs text-muted-foreground">
-                            Salvar o token é a primeira etapa. Acompanhe as confirmações abaixo.
+                            A autorização é a primeira etapa. Acompanhe as confirmações abaixo.
                           </p>
                         </div>
                         <Button
@@ -398,95 +400,117 @@ export function OfficialWhatsApp() {
                       )}
                     </section>
                   )}
-                  <section
-                    className="space-y-5 rounded-2xl border border-neutral-200/80 bg-white p-5"
-                    aria-label="Credenciais da Meta"
+                  {data && (
+                    <MetaConnect
+                      companyId={tenant.id}
+                      version={data.version}
+                      disabled={busy}
+                      onBusyChange={setBusy}
+                      onConnected={(result) => {
+                        setData(result);
+                        setPhone(result.phone_number_id);
+                        setWaba(result.waba_id);
+                        setError("");
+                        setSuccess(
+                          "Conta autorizada na Meta e credencial protegida no servidor. Confira as etapas de ativação.",
+                        );
+                      }}
+                    />
+                  )}
+                  <details
+                    onToggle={(event) => setManualOpen(event.currentTarget.open)}
+                    className="rounded-2xl border border-neutral-200 bg-white p-5"
                   >
-                    <div>
-                      <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
-                        <KeyRound className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
-                        Dados da conexão
-                      </h3>
-                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                        Encontre os identificadores e o token na configuração da API do seu
-                        aplicativo na Meta.
-                      </p>
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <label htmlFor="official-phone-id" className="text-xs font-medium">
-                          Phone Number ID
-                        </label>
-                        <Input
-                          id="official-phone-id"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder="Ex.: 123456789012345"
-                          inputMode="numeric"
-                          pattern="[0-9]{1,40}"
-                          maxLength={40}
-                          required
-                          disabled={busy || !data}
-                          className="rounded-xl"
-                        />
+                    <summary className="cursor-pointer text-sm font-semibold">
+                      Configuração manual (alternativa)
+                    </summary>
+                    <section className="mt-5 space-y-5" aria-label="Credenciais da Meta">
+                      <div>
+                        <h3 className="flex items-center gap-2 text-[15px] font-bold tracking-tight">
+                          <KeyRound className="h-4 w-4 text-neutral-600" strokeWidth={1.7} />
+                          Dados da conexão
+                        </h3>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                          Encontre os identificadores e o token na configuração da API do seu
+                          aplicativo na Meta.
+                        </p>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label htmlFor="official-phone-id" className="text-xs font-medium">
+                            Phone Number ID
+                          </label>
+                          <Input
+                            id="official-phone-id"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Ex.: 123456789012345"
+                            inputMode="numeric"
+                            pattern="[0-9]{1,40}"
+                            maxLength={40}
+                            required
+                            disabled={busy || !data}
+                            className="rounded-xl"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label htmlFor="official-waba-id" className="text-xs font-medium">
+                            WhatsApp Business Account ID (WABA)
+                          </label>
+                          <Input
+                            id="official-waba-id"
+                            value={waba}
+                            onChange={(e) => setWaba(e.target.value)}
+                            placeholder="Ex.: 987654321098765"
+                            inputMode="numeric"
+                            pattern="[0-9]{1,40}"
+                            maxLength={40}
+                            required
+                            disabled={busy || !data}
+                            className="rounded-xl"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label htmlFor="official-waba-id" className="text-xs font-medium">
-                          WhatsApp Business Account ID (WABA)
+                        <label htmlFor="official-access-token" className="text-xs font-medium">
+                          Token de acesso
                         </label>
                         <Input
-                          id="official-waba-id"
-                          value={waba}
-                          onChange={(e) => setWaba(e.target.value)}
-                          placeholder="Ex.: 987654321098765"
-                          inputMode="numeric"
-                          pattern="[0-9]{1,40}"
-                          maxLength={40}
-                          required
+                          ref={tokenRef}
+                          id="official-access-token"
+                          type="password"
+                          autoComplete="new-password"
+                          name="meta-credential"
+                          placeholder={
+                            data?.has_token
+                              ? "Deixe vazio para manter o token salvo"
+                              : "Cole o token de acesso da Meta"
+                          }
+                          minLength={20}
+                          maxLength={4096}
+                          required={!data?.has_token || changed}
                           disabled={busy || !data}
+                          spellCheck={false}
                           className="rounded-xl"
+                          aria-describedby="official-token-help"
                         />
+                        <p
+                          id="official-token-help"
+                          className="text-[11px] leading-relaxed text-muted-foreground"
+                        >
+                          {data?.has_token
+                            ? "Um token protegido já está cadastrado e nunca é exibido novamente."
+                            : "Seu token será criptografado no servidor."}{" "}
+                          Ao alterar os identificadores, informe um novo token.
+                        </p>
                       </div>
-                    </div>
-                    <div className="space-y-1.5">
-                      <label htmlFor="official-access-token" className="text-xs font-medium">
-                        Token de acesso
-                      </label>
-                      <Input
-                        ref={tokenRef}
-                        id="official-access-token"
-                        type="password"
-                        autoComplete="new-password"
-                        name="meta-credential"
-                        placeholder={
-                          data?.has_token
-                            ? "Deixe vazio para manter o token salvo"
-                            : "Cole o token de acesso da Meta"
-                        }
-                        minLength={20}
-                        maxLength={4096}
-                        required={!data?.has_token || changed}
-                        disabled={busy || !data}
-                        spellCheck={false}
-                        className="rounded-xl"
-                        aria-describedby="official-token-help"
-                      />
-                      <p
-                        id="official-token-help"
-                        className="text-[11px] leading-relaxed text-muted-foreground"
-                      >
-                        {data?.has_token
-                          ? "Um token protegido já está cadastrado e nunca é exibido novamente."
-                          : "Seu token será criptografado no servidor."}{" "}
-                        Ao alterar os identificadores, informe um novo token.
-                      </p>
-                    </div>
-                    <div className="flex items-start gap-2 rounded-xl bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600">
-                      <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />O token fica protegido por
-                      criptografia e não será exibido novamente. Apenas administradores desta
-                      empresa podem atualizar a conexão.
-                    </div>
-                  </section>
+                      <div className="flex items-start gap-2 rounded-xl bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600">
+                        <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />O token fica protegido
+                        por criptografia e não será exibido novamente. Apenas administradores desta
+                        empresa podem atualizar a conexão.
+                      </div>
+                    </section>
+                  </details>
                   {data?.display_phone_number && (
                     <div className="grid gap-3 rounded-2xl border border-neutral-200/80 bg-white p-4 text-xs sm:grid-cols-2">
                       <div>
@@ -543,20 +567,20 @@ export function OfficialWhatsApp() {
                     >
                       {[
                         [
-                          "Prepare sua conta",
-                          "Use o aplicativo Meta autorizado para esta integração e confirme a posse do número por SMS ou voz no painel Meta antes de registrá-lo na Cloud API.",
+                          "Autorize pela Meta",
+                          "Clique em Conectar com a Meta, entre na sua conta e escolha a empresa e o número WhatsApp. Permita a abertura da janela de autorização.",
                         ],
                         [
-                          "Informe os identificadores",
-                          "Copie Phone Number ID e WABA ID na configuração da API do aplicativo. Eles são identificadores, não o número do celular.",
+                          "Confirme as permissões",
+                          "Conclua a autorização. O servidor valida o número e guarda o token criptografado sem exibi-lo no navegador.",
                         ],
                         [
-                          "Cadastre o token",
-                          "Use um token autorizado para a conta, com whatsapp_business_management para validar os dados. Prefira um token de usuário do sistema administrado pela empresa.",
+                          "Revise as etapas de ativação",
+                          "Confira o registro do número e a inscrição do aplicativo nos eventos. Envie uma mensagem de teste após concluir as etapas.",
                         ],
                         [
-                          "Valide e configure o webhook",
-                          "Clique em Validar e salvar. Conclua com o suporte a inscrição do aplicativo no webhook e envie uma mensagem de teste para conferir o recebimento.",
+                          "Alternativa manual",
+                          "Se o Cadastro Incorporado ainda não estiver disponível, expanda Configuração manual e informe os identificadores e o token autorizado.",
                         ],
                       ].map(([title, text], i) => (
                         <li key={title} className="flex gap-3">
@@ -612,18 +636,20 @@ export function OfficialWhatsApp() {
               )}
             </div>
             <div className="flex flex-wrap gap-3 border-t bg-white p-4 sm:px-6">
-              <Button
-                type="submit"
-                className="min-w-40 flex-1 rounded-xl bg-[#fb982b] font-semibold text-neutral-950 shadow-none hover:bg-[#ed8c20]"
-                disabled={busy || loading || !data?.enabled}
-              >
-                {busy ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <ShieldCheck className="mr-2 h-4 w-4" />
-                )}
-                Validar e salvar
-              </Button>
+              {manualOpen && (
+                <Button
+                  type="submit"
+                  className="min-w-40 flex-1 rounded-xl bg-[#fb982b] font-semibold text-neutral-950 shadow-none hover:bg-[#ed8c20]"
+                  disabled={busy || loading || !data?.enabled}
+                >
+                  {busy ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ShieldCheck className="mr-2 h-4 w-4" />
+                  )}
+                  Validar e salvar
+                </Button>
+              )}
               {data?.has_token && (
                 <Button
                   type="button"

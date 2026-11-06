@@ -14,6 +14,9 @@ const allowed: Record<string, string[]> = {
   "integrations/gestaoclick": ["GET", "POST"],
   "integrations/gestaoclick/remove": ["POST"],
   "integrations/whatsapp-official": ["GET"],
+  "integrations/whatsapp-official/embedded/config": ["GET"],
+  "integrations/whatsapp-official/embedded/start": ["POST"],
+  "integrations/whatsapp-official/embedded/complete": ["POST"],
   "integrations/whatsapp-official/setup": ["POST"],
   "integrations/whatsapp-official/connect": ["POST"],
   "integrations/whatsapp-official/disconnect": ["POST"],
@@ -99,7 +102,9 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
         headers,
         cache: "no-store",
         redirect: "error",
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(
+          joined === "integrations/whatsapp-official/embedded/complete" ? 30000 : 15000,
+        ),
         ...(body === undefined ? {} : { body }),
       },
     );

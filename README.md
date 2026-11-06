@@ -212,3 +212,9 @@ BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_TURNSTILE_TEST=1 npm run test:e2e --
 Produção no Railway depende de chaves reais, hostnames, HTTPS/APP_ORIGIN e backend PostgreSQL validados.
 
 Publicado em https://cliente-production-a80d.up.railway.app/login. Deploy direto pelo CLI autenticado na conta com créditos; atualizar com railway up apontando explicitamente projeto/ambiente/serviço. Instruções/IDs em docs/RAILWAY.md do backend. Autodeploy GitHub ainda não vinculado. Turnstile de produção exige confirmação humana.
+
+### Ajuda e suporte
+
+Acesse o item no rodapé do menu lateral ou no menu do perfil. A rota autenticada `/{empresa}/ajuda` oferece busca sem acentos, categorias e perguntas frequentes. O botão da página abre o mesmo chat flutuante disponível no painel. Nesta entrega o chat responde com exemplos locais, claramente identificados; não há integração OpenAI ou abertura de chamado humano. A faixa secundária de empresa/dados demonstrativos foi removida; trial e menu da conta permanecem.
+
+O painel WhatsApp oficial inclui Conectar com a Meta (Cadastro Incorporado) e alternativa manual recolhida. O backend precisa de configuração real de App ID/App Secret/Config ID; consulte `docs/WHATSAPP_EMBEDDED_SIGNUP.md` no repositório backend. Nunca configurar App Secret em variáveis públicas Next.

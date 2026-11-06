@@ -36,6 +36,19 @@ test("Cadastro oficial protege token, expande painel e confirma ativação", asy
   const requests: Record<string, unknown>[] = [];
   await page.route(/\/api\/v1\/integrations\/whatsapp-official(?:\/.*)?$/, async (route) => {
     const path = new URL(route.request().url()).pathname;
+    if (path.endsWith("/embedded/config")) {
+      await route.fulfill({
+        json: {
+          company_id: identity.company.id,
+          enabled: false,
+          app_id: null,
+          config_id: null,
+          graph_version: "v25.0",
+          reason: "Cadastro Incorporado não configurado.",
+        },
+      });
+      return;
+    }
     if (path.endsWith("/connect")) {
       const body = route.request().postDataJSON();
       requests.push(body);
@@ -92,6 +105,7 @@ test("Cadastro oficial protege token, expande painel e confirma ativação", asy
   const panel = page.getByRole("dialog", { name: "WhatsApp Business oficial", exact: true });
   await expect(panel).toBeVisible();
   await expect.poll(async () => Math.round((await panel.boundingBox())?.x ?? -1)).toBe(0);
+  await panel.getByText("Configuração manual (alternativa)", { exact: true }).click();
   await expect(page.getByLabel("Phone Number ID", { exact: true })).toBeVisible();
   expect((await panel.boundingBox())?.width).toBe(640);
   await page.screenshot({
@@ -150,6 +164,7 @@ test("Cadastro oficial protege token, expande painel e confirma ativação", asy
   await password.fill("test-only-replacement-secret-not-submitted");
   await panel.getByRole("button", { name: "Fechar", exact: true }).click();
   await card.getByRole("button", { name: "Configurar", exact: true }).click();
+  await panel.getByText("Configuração manual (alternativa)", { exact: true }).click();
   await expect(page.getByLabel("Token de acesso", { exact: true })).toHaveValue("");
   expect(requests).toHaveLength(3);
   await page.getByRole("button", { name: "Remover conexão", exact: true }).click();

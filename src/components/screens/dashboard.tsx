@@ -5,7 +5,7 @@ import { TrialBanner } from "@/components/auth/trial-banner";
 import { PlanSettings } from "@/components/settings/plan-settings";
 import { CompanySettings } from "@/components/settings/company-settings";
 import { TeamSettings } from "@/components/settings/team-settings";
-import { LogoutButton } from "@/components/auth/logout-button";
+import { SupportChat } from "@/components/support/support-chat";
 import { CustomAppearanceEditor } from "@/components/appearance/custom-appearance-editor";
 import { type Appearance } from "@/hooks/use-interface-appearance";
 import { BrandLogo, BrandMark } from "@/components/brand-logo";
@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useTenant, useTenantAppearance } from "@/lib/tenant/provider";
 import { useState, type ReactNode } from "react";
 import {
+  CircleHelp,
   CreditCard,
   Building2,
   ArrowUpRight,
@@ -204,6 +205,19 @@ export function Dashboard({
             </Link>
           ))}
         </nav>
+        <div className="shrink-0 border-t border-sidebar-border px-2 py-4">
+          <Link
+            data-sidebar-item
+            href={href("/ajuda")}
+            title="Ajuda e suporte"
+            aria-label="Ajuda e suporte"
+            aria-current={activePage === "Ajuda e suporte" ? "page" : undefined}
+            className={`flex items-center text-sm font-semibold transition-colors ${open ? "gap-3 rounded-full px-3 py-2" : "mx-auto h-10 w-10 justify-center rounded-xl"} ${activePage === "Ajuda e suporte" ? "bg-sidebar-primary text-sidebar-primary-foreground" : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`}
+          >
+            <CircleHelp className="h-4 w-4 shrink-0" />
+            {open && "Ajuda e suporte"}
+          </Link>
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -239,17 +253,6 @@ export function Dashboard({
           </div>
         </header>
 
-        <div className="flex items-center justify-between border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground md:px-8">
-          <Link href={href("/empresas")} className="font-semibold hover:underline">
-            {tenant.name} · Minha empresa
-          </Link>
-          <span className="hidden text-muted-foreground sm:inline">
-            {activePage === "Atendimentos"
-              ? "Central de atendimento · canal manual"
-              : "Dados comerciais demonstrativos"}
-          </span>
-          <LogoutButton />
-        </div>
         {children ? (
           children
         ) : settings ? (
@@ -693,6 +696,7 @@ export function Dashboard({
           </main>
         )}
       </div>
+      <SupportChat key={`${tenant.id}:${user.id}`} />
     </div>
   );
 }

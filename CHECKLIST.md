@@ -441,3 +441,21 @@ Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API r
 Build e E2E aprovados: abertura do menu, link de integrações isolado por empresa, navegação para configurações e logout real com sessão revogada (GET /auth/me 401). Print desktop gerado com SQLite temporário.
 
 Menu do perfil publicado no Railway: deployment 2243f750-a539-41cb-881a-4cd86a392731 em SUCCESS; código em origin/development (6303a27).
+
+### Prévia local do suporte
+- [x] Criar balão flutuante com chat expansível, respostas demonstrativas e remover faixa secundária do cabeçalho; gerar prints sem publicar.
+
+Prévia exclusivamente local, sem push/deploy e sem chamada OpenAI. Build/TypeScript e E2E aprovados: abertura, sugestões, envio local, recolhimento com Escape/foco e dimensões mobile. Prints aberto/recolhido e mobile gerados. Faixa vermelha de trial preservada; faixa secundária removida. Histórico do chat só em memória, isolado pela montagem de empresa/usuário.
+
+### Conectar com a Meta — local
+- [x] Botão de Cadastro Incorporado, SDK com código temporário, validação de origem, cancelamento/timeout e alternativa manual recolhida.
+- [x] BFF com allowlist, autorização vinculada à sessão/empresa e troca de código criptografada no backend; testes e prints desktop/mobile.
+- [ ] Validar conta real após App ID, App Secret e Config ID de Login para Empresas configurados/aprovados na Meta.
+
+Validação: 115 Vitest, build/TypeScript, ESLint dos arquivos alterados e 2 E2E aprovados. E2E atravessa Next/API/SQLite reais com somente SDK/HTTP Meta simulados; testa replay, ausência de token/segredo no navegador e preservação da configuração manual. Não houve push, alteração no Railway ou uso de conta Meta real.
+
+### Central de ajuda e suporte
+- [x] Incluir acesso no rodapé lateral e perfil; página protegida com busca, categorias, FAQ e abertura do chat; testar e gerar prints.
+- [ ] Atualizar Trello, enviar backend/frontend ao Git e publicar no Railway após validação (autorizado pelo usuário).
+
+Validação da Central de Ajuda: 115 Vitest, build/TypeScript e 6 cenários E2E relevantes aprovados (ajuda revalidada após correção da contagem esperada de busca). Busca sem acento, categorias, perguntas, abertura do chat, acesso mobile e isolamento/recusa anônima verificados. Publicação solicitada em andamento; chat segue com respostas de exemplo, sem OpenAI.

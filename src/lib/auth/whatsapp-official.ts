@@ -47,3 +47,15 @@ export async function officialWhatsApp(
     throw new ApiError(502, "Não foi possível validar a configuração da empresa.");
   return result.data;
 }
+
+export async function completeMetaSignup(
+  companyId: string,
+  body: { state: string; code: string; phone_number_id: string; waba_id: string },
+) {
+  const result = schema.safeParse(
+    await apiRequest("/integrations/whatsapp-official/embedded/complete", body),
+  );
+  if (!result.success || result.data.company_id !== companyId)
+    throw new ApiError(502, "Não foi possível validar a conexão da empresa.");
+  return result.data;
+}

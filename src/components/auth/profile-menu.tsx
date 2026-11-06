@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, Settings, Plug, LogOut } from "lucide-react";
+import { ChevronDown, Settings, Plug, LogOut, CircleHelp } from "lucide-react";
 import { useTenant } from "@/lib/tenant/provider";
 import { auth, ApiError } from "@/lib/auth/client";
 import {
@@ -66,6 +66,12 @@ export function ProfileMenu() {
           <Link href={href("/integracoes")}>
             <Plug />
             Integrações
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href={href("/ajuda")}>
+            <CircleHelp />
+            Ajuda e suporte
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
