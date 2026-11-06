@@ -36,6 +36,7 @@ export function GestaoClickCard() {
     [success, setSuccess] = useState(""),
     [revision, setRevision] = useState(0),
     [confirm, setConfirm] = useState(false);
+  const [selectedStore, setSelectedStore] = useState("");
   const accessRef = useRef<HTMLInputElement>(null),
     secretRef = useRef<HTMLInputElement>(null);
   function clearSecrets() {
@@ -54,7 +55,8 @@ export function GestaoClickCard() {
       .then((result) => {
         if (alive) {
           setData(result);
-          setUrl(result.base_url);
+          setUrl(result.base_url || "https://api.gestaoclick.com/api");
+          setSelectedStore(result.selected_store_id || "");
           setError("");
         }
       })
@@ -89,7 +91,12 @@ export function GestaoClickCard() {
       });
       setData(result);
       setUrl(result.base_url);
-      setSuccess("Credenciais cadastradas com segurança. O acesso ao ERP ainda não foi validado.");
+      setSelectedStore(result.selected_store_id || "");
+      setSuccess(
+        result.status === "access_validated"
+          ? "Credenciais mantidas. O último teste de acesso às lojas foi preservado."
+          : "Credenciais cadastradas com segurança. O acesso ao ERP ainda não foi validado.",
+      );
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível salvar.");
     } finally {
@@ -106,6 +113,7 @@ export function GestaoClickCard() {
       const result = await gestaoClick(tenant.id, "remove", { version: data.version });
       setData(result);
       setUrl(result.base_url);
+      setSelectedStore(result.selected_store_id || "");
       setSuccess("Configuração removida e credenciais apagadas.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível remover.");
@@ -113,12 +121,72 @@ export function GestaoClickCard() {
       setBusy(false);
     }
   }
+  async function testAccess() {
+    if (!data || busy) return;
+    if (
+      url.trim().replace(/\/$/, "") !== data.base_url ||
+      accessRef.current?.value ||
+      secretRef.current?.value
+    ) {
+      setError("Salve as alterações nas credenciais antes de testar.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await gestaoClick(tenant.id, "test", { version: data.version });
+      setData(result);
+      setSelectedStore(result.selected_store_id || "");
+      setSuccess(
+        result.stores.length
+          ? "Acesso à listagem de lojas validado. Selecione a loja da integração."
+          : "A chave acessou a API, mas nenhuma loja foi retornada. Confira o usuário e os vínculos no ERP.",
+      );
+    } catch (e) {
+      const latest = await gestaoClick(tenant.id).catch(() => null);
+      if (latest) {
+        setData(latest);
+        setSelectedStore(latest.selected_store_id || "");
+      }
+      setError(e instanceof Error ? e.message : "Não foi possível testar a conexão.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function saveStore() {
+    if (!data || busy || !selectedStore) return;
+    setBusy(true);
+    setError("");
+    setSuccess("");
+    try {
+      const result = await gestaoClick(tenant.id, "store", {
+        version: data.version,
+        store_id: selectedStore,
+      });
+      setData(result);
+      setSelectedStore(result.selected_store_id || "");
+      setSuccess("Loja da integração salva. Nenhuma sincronização foi iniciada.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível salvar a loja.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  const statusLabel =
+    data?.status === "access_validated"
+      ? "Acesso às lojas validado"
+      : data?.status === "test_failed"
+        ? "Teste não concluído"
+        : data?.has_credentials
+          ? "Credenciais cadastradas"
+          : "Não configurado";
   const required = !data?.has_credentials || url.trim().replace(/\/$/, "") !== data.base_url;
   return (
     <>
       <article className="flex min-h-64 flex-col rounded-[32px] bg-card p-6 shadow-[0_4px_24px_-4px_rgba(24,32,55,0.07)]">
         <div className="mb-5 flex items-start justify-between gap-2">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 text-violet-500">
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-600">
             <Boxes className="h-6 w-6" />
           </span>
           {loading ? (
@@ -128,7 +196,7 @@ export function GestaoClickCard() {
               {!admin
                 ? "Acesso administrativo"
                 : data?.has_credentials
-                  ? "Credenciais cadastradas"
+                  ? statusLabel
                   : data
                     ? "Não configurado"
                     : "Indisponível"}
@@ -156,7 +224,7 @@ export function GestaoClickCard() {
           className="flex h-dvh w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-[640px] [&>button]:right-6 [&>button]:top-7"
         >
           <SheetHeader className="border-b bg-card p-7 pr-14 text-left">
-            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-500">
+            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100 text-neutral-600">
               <Boxes className="h-6 w-6" />
             </span>
             <SheetTitle>Configurações do GestãoClick</SheetTitle>
@@ -165,21 +233,111 @@ export function GestaoClickCard() {
             </SheetDescription>
           </SheetHeader>
           <form onSubmit={save} autoComplete="off" className="flex min-h-0 flex-1 flex-col">
-            <div className="flex-1 space-y-5 overflow-y-auto p-6 sm:p-7">
+            <div className="flex-1 space-y-4 overflow-y-auto bg-[#f6f6f7] p-5 sm:px-6">
               {loading ? (
                 <Skeleton className="h-72 rounded-2xl" />
               ) : (
                 <>
-                  <div className="rounded-2xl border bg-card p-4">
+                  <div className="rounded-2xl border bg-white p-4">
                     <p className="text-sm font-semibold">
-                      {data?.has_credentials ? "Credenciais cadastradas" : "Cadastro da integração"}
+                      {data?.has_credentials ? statusLabel : "Cadastro da integração"}
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      Esta etapa salva os dados de acesso. Validação da conexão e sincronização de
-                      produtos e clientes serão disponibilizadas depois.
+                      Cadastre as credenciais, teste o acesso e escolha a loja da integração. A
+                      sincronização de produtos e clientes ainda não está disponível.
                     </p>
                   </div>
-                  <section className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+                  {data?.has_credentials && (
+                    <section
+                      className="space-y-4 rounded-2xl border bg-white p-5"
+                      aria-label="Conexão GestãoClick"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h3 className="flex items-center gap-2 text-[15px] font-bold">
+                            <RefreshCw className="h-4 w-4 text-neutral-600" />
+                            Validar acesso
+                          </h3>
+                          <p className="mt-1 text-xs text-neutral-500">
+                            O teste consulta somente as lojas acessíveis à chave.
+                          </p>
+                        </div>
+                        <span className="text-[11px] text-neutral-500">{statusLabel}</span>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label htmlFor="gc-store" className="text-xs font-medium">
+                            Loja da integração
+                          </label>
+                          <select
+                            id="gc-store"
+                            value={selectedStore}
+                            onChange={(e) => setSelectedStore(e.target.value)}
+                            disabled={
+                              busy || data.status !== "access_validated" || !data.stores.length
+                            }
+                            className="h-10 w-full rounded-xl border bg-white px-3 text-xs disabled:bg-neutral-50"
+                          >
+                            <option value="">
+                              {data.status === "access_validated"
+                                ? "Selecione uma loja"
+                                : "Disponível após validar o acesso"}
+                            </option>
+                            {data.stores.map((store) => (
+                              <option key={store.id} value={store.id}>
+                                {store.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="text-xs font-medium">Último teste</p>
+                          <p className="flex h-10 items-center text-xs text-neutral-500">
+                            {data.tested_at
+                              ? new Date(data.tested_at * 1000).toLocaleString("pt-BR", {
+                                  timeZone: "America/Sao_Paulo",
+                                })
+                              : "Ainda não realizado"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-3">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          className="rounded-xl bg-white text-xs shadow-none"
+                          disabled={busy || !data.enabled}
+                          onClick={() => void testAccess()}
+                        >
+                          {busy ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="mr-2 h-4 w-4" />
+                          )}
+                          Testar conexão
+                        </Button>
+                        <Button
+                          type="button"
+                          className="rounded-xl text-xs"
+                          disabled={
+                            busy ||
+                            data.status !== "access_validated" ||
+                            !selectedStore ||
+                            selectedStore === data.selected_store_id
+                          }
+                          onClick={() => void saveStore()}
+                        >
+                          Salvar loja
+                        </Button>
+                      </div>
+                      <p className="text-[11px] leading-relaxed text-neutral-500">
+                        Este teste valida apenas o acesso a Lojas/index. Permissões de produtos e
+                        clientes ainda não foram verificadas. O usuário e os vínculos fixos da chave
+                        no ERP podem prevalecer sobre a loja selecionada.
+                      </p>
+                    </section>
+                  )}
+                  <section className="space-y-5 rounded-2xl border bg-white p-5">
                     <div className="space-y-1.5">
                       <label htmlFor="gc-url" className="text-xs font-medium">
                         Endereço base da API
@@ -191,7 +349,7 @@ export function GestaoClickCard() {
                         type="url"
                         maxLength={300}
                         required
-                        placeholder="https://servidor-da-conta/api"
+                        placeholder="https://api.gestaoclick.com/api"
                         disabled={busy || !data}
                         className="rounded-xl"
                       />
@@ -248,13 +406,13 @@ export function GestaoClickCard() {
                         informe as duas credenciais.
                       </p>
                     </div>
-                    <p className="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-xs leading-relaxed text-emerald-900">
+                    <p className="flex items-start gap-2 rounded-xl bg-neutral-50 p-3 text-xs leading-relaxed text-neutral-600">
                       <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0" />
                       Credenciais criptografadas no servidor, separadas por empresa. Apenas
                       administradores podem atualizar ou remover.
                     </p>
                   </section>
-                  <section className="space-y-2 rounded-2xl border bg-card p-5">
+                  <section className="space-y-2 rounded-2xl border bg-white p-5">
                     <h3 className="text-sm font-semibold">Onde encontrar os dados</h3>
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       No GestãoClick, abra Meus aplicativos → API → Credenciais e crie uma chave
@@ -293,7 +451,7 @@ export function GestaoClickCard() {
                 </div>
               )}
               {success && (
-                <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-900">
+                <p role="status" className="rounded-xl bg-neutral-50 p-3 text-sm text-neutral-600">
                   {success}
                 </p>
               )}

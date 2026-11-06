@@ -164,3 +164,17 @@ Em Integrações → GestãoClick ERP, o admin abre um aside esquerdo e cadastra
 ### Prévia visual das próximas etapas GestãoClick
 
 O link **Ver prévia das próximas etapas** no painel GestãoClick abre `/[tenant]/integracoes/previa-gestaoclick`. É uma demonstração isolada no frontend com credenciais cadastradas, teste de acesso, loja, permissões, sincronização e histórico. Botões simulam resultados em memória e não acessam APIs de integração ou ERP. A autenticação do workspace permanece existente. Nenhuma validação/sincronização real foi adicionada ao backend.
+
+### GestãoClick — teste de acesso e loja implementados
+
+O painel real agora oferece **Testar conexão** e **Salvar loja**, usando os tokens protegidos no backend. A consulta valida somente `GET /lojas` e sua permissão `Lojas/index`; não comprova acesso a produtos/clientes nem identifica o usuário efetivo da chave. Os vínculos fixos do usuário/loja no ERP podem prevalecer nas consultas futuras.
+
+O status Acesso às lojas validado representa a última consulta. Troca de credenciais invalida lojas/seleção; falha de teste limpa dados anteriores e apresenta mensagem sem expor tokens. A API permite selecionar apenas loja da consulta autorizada recente. Nenhuma sincronização é iniciada. O link de prévia continua sendo uma demonstração local separada.
+
+Teste ponta a ponta com API/SQL reais e somente transporte ERP simulado:
+
+```sh
+BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 npm run test:e2e -- e2e/gestaoclick-access.spec.ts
+```
+
+O mock existe apenas no runner de testes com SQLite temporário; não é um modo da aplicação de produção. OpenAPI recebido e decisões estão documentados em docs/GESTAOCLICK_ACCESS.md no backend.

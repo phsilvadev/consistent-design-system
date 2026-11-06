@@ -32,3 +32,23 @@ it("não envia tokens ao manter credenciais existentes", async () => {
   expect(JSON.parse(fetch.mock.calls[0]?.[1]?.body)).not.toHaveProperty("access_token");
   expect(JSON.parse(fetch.mock.calls[0]?.[1]?.body)).not.toHaveProperty("secret_access_token");
 });
+
+it("testa acesso sem transmitir as credenciais pelo navegador", async () => {
+  const fetch = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        ...data,
+        status: "access_validated",
+        stores: [{ id: "1", name: "Matriz" }],
+        selected_store_id: null,
+        tested_at: 1,
+        test_error_code: null,
+      }),
+    ),
+  );
+  vi.stubGlobal("fetch", fetch);
+  const result = await gestaoClick(company, "test", { version: 1 });
+  expect(fetch.mock.calls[0]?.[0]).toBe("/api/v1/integrations/gestaoclick/test");
+  expect(JSON.parse(fetch.mock.calls[0]?.[1]?.body)).toEqual({ version: 1 });
+  expect(result.stores[0]?.name).toBe("Matriz");
+});

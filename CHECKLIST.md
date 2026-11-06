@@ -376,3 +376,8 @@ Validado: lint/build e E2E da prévia aprovados. Em desktop, Produtos/Clientes l
 - [x] Aplicar cards compactos, ícones em cinza e ação principal laranja aos painéis oficial/QR, preservando integrações e gerando prints.
 
 Validado: lint/build e 3 E2E dos painéis aprovados. Mantidos formulário/segurança/expansão oficial, registro e inscrição com confirmação, pareamento, expiração e desconexão QR; layouts mobile sem overflow. Prints oficial e QR atualizados com dados de teste. Backend inalterado.
+
+### GestãoClick — acesso e loja reais
+- [x] Substituir somente o teste/seleção de loja no painel real por chamadas ao backend; preservar prévia simulada separada e não iniciar sincronizações.
+
+Validado: contrato do frontend, lint/typecheck/build e dois E2E do cadastro e acesso GestãoClick aprovados. Seleção persiste após recarregar e é invalidada ao trocar credenciais. Prints desktop/mobile gerados. E2E utiliza backend real e resposta HTTP do ERP simulada; conta real e sincronização permanecem pendentes.

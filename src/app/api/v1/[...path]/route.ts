@@ -4,6 +4,8 @@ import { SESSION_COOKIE } from "@/lib/auth/contracts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
+  "integrations/gestaoclick/test": ["POST"],
+  "integrations/gestaoclick/store": ["POST"],
   "integrations/gestaoclick": ["GET", "POST"],
   "integrations/gestaoclick/remove": ["POST"],
   "integrations/whatsapp-official": ["GET"],

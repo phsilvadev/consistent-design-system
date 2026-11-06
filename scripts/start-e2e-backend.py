@@ -18,6 +18,9 @@ with tempfile.TemporaryDirectory(prefix='atendehub-tenant-tests-') as directory:
     subprocess.run([str(python), '-m', 'app.seeds.plans'], cwd=source, env=env, check=True)
     metadata.write_text(json.dumps({'database':database, 'python':str(python)}))
     try:
-        subprocess.run([str(python), '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8200'], cwd=source, env=env, check=True)
+        command=[str(python), '-m', 'uvicorn', 'app.main:app', '--host', '127.0.0.1', '--port', '8200']
+        if os.environ.get('E2E_GESTAOCLICK_STUB')=='1':
+            command=[str(python),str(root/'scripts/e2e-gestaoclick-api.py')]
+        subprocess.run(command,cwd=source,env=env,check=True)
     finally:
         metadata.unlink(missing_ok=True)
