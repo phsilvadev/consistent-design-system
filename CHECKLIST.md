@@ -433,4 +433,4 @@ Publicado em https://cliente-production-a80d.up.railway.app/login; API pela rede
 ### Faixa do teste gratuito
 - [x] Exibir faixa vermelha no topo do painel com dias restantes da empresa, ocultando para planos pagos; validar e gerar print.
 
-Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API reais e SQLite temporário aprovado. Prints desktop/mobile gerados com cadastro fictício somente no ambiente de teste. Alteração local, ainda sem publicação no Railway.
+Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API reais e SQLite temporário aprovado. Prints desktop/mobile gerados com cadastro fictício somente no ambiente de teste. Publicado no Railway com deployment c28246cf-7949-4ebf-ab97-26d011db5a96 em SUCCESS; login HTTP 200. Código enviado para origin/development no commit e0f676c.
