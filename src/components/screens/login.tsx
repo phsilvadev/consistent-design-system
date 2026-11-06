@@ -2,6 +2,7 @@
 
 import { tenantHref } from "@/lib/tenant/shared";
 import { auth } from "@/lib/auth/client";
+import { AntiBotChallenge, type AntiBotState } from "@/components/auth/anti-bot";
 import { BrandLogo } from "@/components/brand-logo";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -15,10 +16,16 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [challenge, setChallenge] = useState<AntiBotState>({
+    ready: false,
+    enabled: true,
+    token: "",
+  });
+  const [challengeReset, setChallengeReset] = useState(0);
   const [remember, setRemember] = useState(false);
   async function enterWorkspace(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || !challenge.ready) return;
     setError("");
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email") || "");
@@ -35,14 +42,19 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
             String(form.get("companyName") || ""),
             email,
             password,
+            challenge.token,
           )
-        : await auth.login(email, password, remember);
+        : await auth.login(email, password, remember, challenge.token);
       router.replace(tenantHref(identity.company.id));
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível entrar. Tente novamente.");
     } finally {
       setBusy(false);
+      if (challenge.enabled) {
+        setChallenge({ ready: false, enabled: true, token: "" });
+        setChallengeReset((value) => value + 1);
+      }
     }
   }
 
@@ -221,6 +233,12 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
                 Lembrar meu acesso
               </label>
             )}
+            <AntiBotChallenge
+              action={registering ? "client_register" : "client_login"}
+              configPath="/api/v1/auth/challenge"
+              resetKey={challengeReset}
+              onState={setChallenge}
+            />
             {error && (
               <p
                 role="alert"
@@ -230,7 +248,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
               </p>
             )}
             <button
-              disabled={busy}
+              disabled={busy || !challenge.ready}
               type="submit"
               className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
             >

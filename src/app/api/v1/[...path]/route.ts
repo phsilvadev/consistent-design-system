@@ -4,6 +4,7 @@ import { SESSION_COOKIE } from "@/lib/auth/contracts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
+  "auth/challenge": ["GET"],
   products: ["GET"],
   "integrations/gestaoclick/products-sync": ["GET"],
   "integrations/gestaoclick/products-sync/start": ["POST"],

@@ -48,9 +48,26 @@ async function identityRequest(path: string, body?: unknown): Promise<Identity> 
 }
 export const auth = {
   me: () => identityRequest("me"),
-  login: (email: string, password: string, remember: boolean) =>
-    identityRequest("login", { email, password, remember }),
-  register: (name: string, company: string, email: string, password: string) =>
-    identityRequest("register", { name, company, email, password }),
+  login: (email: string, password: string, remember: boolean, challengeToken?: string) =>
+    identityRequest("login", {
+      email,
+      password,
+      remember,
+      ...(challengeToken ? { challenge_token: challengeToken } : {}),
+    }),
+  register: (
+    name: string,
+    company: string,
+    email: string,
+    password: string,
+    challengeToken?: string,
+  ) =>
+    identityRequest("register", {
+      name,
+      company,
+      email,
+      password,
+      ...(challengeToken ? { challenge_token: challengeToken } : {}),
+    }),
   logout: () => authRequest("logout", {}),
 };

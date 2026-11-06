@@ -201,3 +201,12 @@ Para validar o Firebase real com dados temporários (faz upload e remove a image
 BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 E2E_FIREBASE_REAL=1 npm run test:e2e -- e2e/product-images.spec.ts
 ```
 Requer bucket/identidade configurados no backend. Não combinar com `E2E_FIREBASE_STORAGE_STUB`. Somente o ERP permanece simulado; Storage, validação de imagem, sessões e banco são reais. O helper restringe verificação/limpeza à empresa no SQLite temporário, verifica negação de leitura anônima e não exibe credenciais.
+
+### Verificação antirrobô
+Os formulários públicos de autenticação usam Cloudflare Turnstile; a API valida o token antes de criar sessões/empresas. A configuração pública é carregada em runtime pelo BFF; nenhuma chave secreta fica neste frontend. Tokens expiram e são renovados após cada tentativa. Falha de script/configuração não libera envio. O backend possui instruções completas em `docs/ANTIBOT.md`; modo de teste local não deve ser publicado.
+
+Teste de navegador com widget/Siteverify oficiais e chaves públicas de teste:
+```bash
+BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_TURNSTILE_TEST=1 npm run test:e2e -- e2e/turnstile.spec.ts
+```
+Produção no Railway depende de chaves reais, hostnames, HTTPS/APP_ORIGIN e backend PostgreSQL validados.
