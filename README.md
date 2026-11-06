@@ -195,3 +195,9 @@ E2E de imagens e prints, sem acessar Firebase real:
 BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 E2E_FIREBASE_STORAGE_STUB=1 npm run test:e2e -- e2e/product-images.spec.ts
 ```
 A simulação existe somente no runner isolado com SQLite temporário. A API e a validação/reencodificação de arquivos são reais; o SDK Storage é simulado. A imagem de teste em `e2e/fixtures/product-tube.png` é uma ilustração fictícia gerada para validar o fluxo.
+
+Para validar o Firebase real com dados temporários (faz upload e remove a imagem de teste ao terminar):
+```bash
+BACKEND_SOURCE_DIR=../Atend-hub-backend E2E_GESTAOCLICK_STUB=1 E2E_FIREBASE_REAL=1 npm run test:e2e -- e2e/product-images.spec.ts
+```
+Requer bucket/identidade configurados no backend. Não combinar com `E2E_FIREBASE_STORAGE_STUB`. Somente o ERP permanece simulado; Storage, validação de imagem, sessões e banco são reais. O helper restringe verificação/limpeza à empresa no SQLite temporário, verifica negação de leitura anônima e não exibe credenciais.

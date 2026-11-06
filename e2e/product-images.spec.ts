@@ -1,15 +1,46 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
+const live = process.env.E2E_FIREBASE_REAL === "1";
+let liveCompany: string | null = null;
+function cloudObjects(action: "verify" | "cleanup") {
+  const metadataPath = path.join(process.cwd(), ".e2e-backend.json");
+  const source = process.env.BACKEND_SOURCE_DIR;
+  if (!source || !liveCompany) throw new Error("Configure BACKEND_SOURCE_DIR e o tenant de teste.");
+  return readFile(metadataPath, "utf8").then((raw) => {
+    const metadata = JSON.parse(raw) as { python: string };
+    const result = execFileSync(
+      metadata.python,
+      [
+        path.join(process.cwd(), "scripts/e2e-firebase-objects.py"),
+        metadataPath,
+        liveCompany!,
+        action,
+      ],
+      { cwd: source, encoding: "utf8", timeout: 45000 },
+    );
+    console.log(result.trim());
+  });
+}
+test.afterEach(async () => {
+  if (live && liveCompany) {
+    await cloudObjects("cleanup");
+    liveCompany = null;
+  }
+});
 test("Upload privado da imagem com arrastar/soltar, persistência e isolamento", async ({
   page,
   context,
   browser,
 }) => {
   test.skip(
-    process.env.E2E_FIREBASE_STORAGE_STUB !== "1",
-    "Requer o runner isolado com SDK Storage simulado.",
+    !live && process.env.E2E_FIREBASE_STORAGE_STUB !== "1",
+    "Requer Storage simulado ou E2E_FIREBASE_REAL=1 com credencial server-side.",
   );
+  test.setTimeout(live ? 120000 : 45000);
+  if (live && process.env.E2E_FIREBASE_STORAGE_STUB === "1")
+    throw new Error("Teste real não permite simular Firebase.");
   const headers = { Origin: "http://127.0.0.1:3200" };
   const signup = {
     name: "Pedro Almeida",
@@ -23,6 +54,7 @@ test("Upload privado da imagem com arrastar/soltar, persistência e isolamento",
   });
   expect(registration.status()).toBe(201);
   const identity = await registration.json();
+  if (live) liveCompany = identity.company.id;
   const prefix = "/api/v1/integrations/gestaoclick";
   expect(
     (
@@ -131,7 +163,9 @@ test("Upload privado da imagem com arrastar/soltar, persistência e isolamento",
     .poll(() => thumb.evaluate((element) => (element as HTMLImageElement).naturalWidth))
     .toBeGreaterThan(0);
   await page.screenshot({
-    path: "/workspace/atendehub-produtos-com-imagem-desktop.png",
+    path: live
+      ? "/workspace/atendehub-firebase-real-produtos-desktop.png"
+      : "/workspace/atendehub-produtos-com-imagem-desktop.png",
     fullPage: true,
     animations: "disabled",
   });
@@ -160,4 +194,5 @@ test("Upload privado da imagem com arrastar/soltar, persistência e isolamento",
     ).status(),
   ).toBe(403);
   await other.close();
+  if (live) await cloudObjects("verify");
 });
