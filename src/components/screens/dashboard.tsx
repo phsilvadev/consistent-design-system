@@ -1,5 +1,6 @@
 "use client";
 
+import { ProfileMenu } from "@/components/auth/profile-menu";
 import { TrialBanner } from "@/components/auth/trial-banner";
 import { PlanSettings } from "@/components/settings/plan-settings";
 import { CompanySettings } from "@/components/settings/company-settings";
@@ -28,7 +29,6 @@ import {
   Menu,
   Bell,
   LayoutGrid,
-  ChevronDown,
   MessageCircle,
   Palette,
   Check,
@@ -235,13 +235,7 @@ export function Dashboard({
             >
               <Settings className="h-5 w-5" />
             </Link>
-            <button className="ml-2 flex items-center gap-2 rounded-full border py-1 pl-1 pr-3 hover:bg-muted">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary text-xs font-bold text-secondary-foreground">
-                {user.name.slice(0, 2).toUpperCase()}
-              </span>
-              <span className="hidden text-sm font-semibold sm:inline">{user.name}</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
+            <ProfileMenu />
           </div>
         </header>
 

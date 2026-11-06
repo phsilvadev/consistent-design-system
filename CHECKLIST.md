@@ -434,3 +434,8 @@ Publicado em https://cliente-production-a80d.up.railway.app/login; API pela rede
 - [x] Exibir faixa vermelha no topo do painel com dias restantes da empresa, ocultando para planos pagos; validar e gerar print.
 
 Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API reais e SQLite temporário aprovado. Prints desktop/mobile gerados com cadastro fictício somente no ambiente de teste. Publicado no Railway com deployment c28246cf-7949-4ebf-ab97-26d011db5a96 em SUCCESS; login HTTP 200. Código enviado para origin/development no commit e0f676c.
+
+### Menu do perfil
+- [x] Ativar menu do usuário no cabeçalho com configurações, integrações e logout; validar navegação e gerar print.
+
+Build e E2E aprovados: abertura do menu, link de integrações isolado por empresa, navegação para configurações e logout real com sessão revogada (GET /auth/me 401). Print desktop gerado com SQLite temporário.
