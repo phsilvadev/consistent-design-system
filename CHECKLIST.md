@@ -439,3 +439,5 @@ Validação: 111 testes Vitest, TypeScript e build aprovados; E2E com Next/API r
 - [x] Ativar menu do usuário no cabeçalho com configurações, integrações e logout; validar navegação e gerar print.
 
 Build e E2E aprovados: abertura do menu, link de integrações isolado por empresa, navegação para configurações e logout real com sessão revogada (GET /auth/me 401). Print desktop gerado com SQLite temporário.
+
+Menu do perfil publicado no Railway: deployment 2243f750-a539-41cb-881a-4cd86a392731 em SUCCESS; código em origin/development (6303a27).
