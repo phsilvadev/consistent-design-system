@@ -17,7 +17,13 @@ test("layout de login/cadastro, Google e recuperação completa com API real", a
     }}}};`,
     });
   });
+  await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("/login");
+  const loginBounds = await page.locator("main > div").first().boundingBox();
+  expect(loginBounds?.x).toBe(0);
+  expect(loginBounds?.y).toBe(0);
+  expect(loginBounds?.width).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+
   await expect(
     page.getByRole("link", { name: "Esqueci minha senha", exact: true }),
   ).toHaveAttribute("href", "/esqueci-senha");

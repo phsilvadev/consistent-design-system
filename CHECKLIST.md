@@ -471,3 +471,9 @@ Validação em 09/11/2026: build, TypeScript, ESLint e 2 E2E aprovados. Testados
 - [x] Aplicar layout de referência em login/cadastro, entrada Google server-side e páginas de esqueci/redefinir senha; testar e gerar prints.
 
 Validação local: 115 Vitest, build/TypeScript e E2E Next/BFF/API/SQLite aprovado para cadastro Google com trial de 7 dias, login no tenant correto, recuperação por e-mail simulado e nova senha funcional. Prints login/cadastro/recuperação/redefinição e mobile gerados. SDK/verificação Google e transporte SMTP simulados somente no runner isolado; Google/SMTP reais ainda dependem de configuração. Publicação solicitada em 09/11/2026, em preparação.
+
+### Correção de largura do acesso
+- [x] Remover fundo/margem escuros e limite de largura no shell compartilhado de login, cadastro e recuperação; validar localmente.
+- [ ] Publicar a correção de largura no Railway e confirmar no navegador.
+
+Build/TypeScript e E2E de acesso aprovados em 1920x1080. Confirmado container em x=0/y=0 com largura da janela, além dos fluxos Google/recuperação simulados e cadastro mobile. Mudança visual não altera contratos nem tokens de cores.
