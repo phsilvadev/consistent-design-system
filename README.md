@@ -224,3 +224,5 @@ O painel WhatsApp oficial inclui Conectar com a Meta (Cadastro Incorporado) e al
 Login e cadastro usam uma moldura arredondada com painel visual e preservam a paleta atual. O login oferece o link `/esqueci-senha` e a página `/redefinir-senha` trata o token de recuperação somente em memória. Google Identity Services é usado para login/cadastro; sem `GOOGLE_AUTH_CLIENT_ID` no backend, a interface informa que a configuração está pendente. Recuperação requer origem pública e SMTP STARTTLS configurados no backend. Os campos e a verificação Turnstile do acesso por e-mail permanecem.
 
 Credenciais de Google/SMTP, regras de vínculo e segurança estão em `docs/CLIENT_AUTH.md` do repositório backend. A etapa local usa SDK Google/SMTP simulados apenas nos testes; uso com conta Google real e entrega real de e-mail ainda precisam de configuração e validação.
+
+As telas públicas de acesso ocupam toda a janela, sem fundo externo escuro, padding externo ou limite de largura. Publicado com cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9 e API 818ef177-a268-4964-aab4-75e14f658502 (SUCCESS). Google/recuperação aguardam Client ID e SMTP reais; Turnstile de produção preservado.

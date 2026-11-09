@@ -474,6 +474,8 @@ Validação local: 115 Vitest, build/TypeScript e E2E Next/BFF/API/SQLite aprova
 
 ### Correção de largura do acesso
 - [x] Remover fundo/margem escuros e limite de largura no shell compartilhado de login, cadastro e recuperação; validar localmente.
-- [ ] Publicar a correção de largura no Railway e confirmar no navegador.
+- [x] Publicar a correção de largura no Railway e confirmar no navegador.
 
 Build/TypeScript e E2E de acesso aprovados em 1920x1080. Confirmado container em x=0/y=0 com largura da janela, além dos fluxos Google/recuperação simulados e cadastro mobile. Mudança visual não altera contratos nem tokens de cores.
+
+Publicação final em 09/11/2026: cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9, superadmin ffa90106-3b32-481b-be3a-b4659925a1a8 e API 818ef177-a268-4964-aab4-75e14f658502 em SUCCESS. Push development concluído (cliente 5b0eccc, admin c829998, backend 7a3f493 mais documentação). Navegador real de produção: container x=0/y=0/largura 1920 e cantos brancos; cadastro e recuperação também em largura total. Prints salvos. Turnstile real ativo/testing=false; Google e SMTP reais ausentes, opções false sem simular sucesso. Trello atualizado com layouts concluídos e provedores pendentes.
