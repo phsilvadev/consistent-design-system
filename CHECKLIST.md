@@ -479,3 +479,6 @@ Validação local: 115 Vitest, build/TypeScript e E2E Next/BFF/API/SQLite aprova
 Build/TypeScript e E2E de acesso aprovados em 1920x1080. Confirmado container em x=0/y=0 com largura da janela, além dos fluxos Google/recuperação simulados e cadastro mobile. Mudança visual não altera contratos nem tokens de cores.
 
 Publicação final em 09/11/2026: cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9, superadmin ffa90106-3b32-481b-be3a-b4659925a1a8 e API 818ef177-a268-4964-aab4-75e14f658502 em SUCCESS. Push development concluído (cliente 5b0eccc, admin c829998, backend 7a3f493 mais documentação). Navegador real de produção: container x=0/y=0/largura 1920 e cantos brancos; cadastro e recuperação também em largura total. Prints salvos. Turnstile real ativo/testing=false; Google e SMTP reais ausentes, opções false sem simular sucesso. Trello atualizado com layouts concluídos e provedores pendentes.
+
+### Moldura branca e altura responsiva
+- [x] Recuar somente painel colorido em 8px sobre fundo branco; adaptar alturas/espaçamentos a notebook e manter campos/Turnstile acessíveis. Build, TypeScript e E2E responsivo aprovados: notebook 1366x768, login 1366x650, desktop 1920x1080 e mobile 390x844. Turnstile representado por widget de 65px no teste de geometria, sem envio de autenticação.

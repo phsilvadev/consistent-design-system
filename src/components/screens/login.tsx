@@ -69,7 +69,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
   return (
     <ClientAuthShell registering={registering}>
       <div className="mx-auto w-full max-w-sm">
-        <div className="text-center">
+        <div data-access-heading className="text-center">
           <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-[10px] font-medium text-muted-foreground">
             <LockKeyhole className="size-3" />
             {registering ? "Comece com 7 dias grátis" : "Sua conta AtendeHub"}
@@ -86,7 +86,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
         <form onSubmit={enterWorkspace} method="post" className="mt-7 space-y-4">
           <fieldset disabled={busy} className="space-y-4">
             {registering && (
-              <>
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label htmlFor="name" className="text-xs font-medium">
                     Seu nome
@@ -119,7 +119,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
                     className={field}
                   />
                 </div>
-              </>
+              </div>
             )}
             <div>
               <label htmlFor="email" className="text-xs font-medium">
@@ -136,63 +136,63 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
                 className={field}
               />
             </div>
-            <div>
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="password" className="text-xs font-medium">
-                  Senha
-                </label>
-                {!registering && (
-                  <Link
-                    href="/esqueci-senha"
-                    className="text-[11px] font-medium text-muted-foreground underline-offset-4 hover:underline"
-                  >
-                    Esqueci minha senha
-                  </Link>
-                )}
-              </div>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete={registering ? "new-password" : "current-password"}
-                  maxLength={128}
-                  minLength={registering ? 8 : 1}
-                  required
-                  placeholder={
-                    registering ? "Crie uma senha com 8 ou mais caracteres" : "Digite sua senha"
-                  }
-                  className={`${field} pr-12`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                  aria-pressed={showPassword}
-                  className="absolute right-1 top-3 rounded-lg p-2.5 text-muted-foreground hover:bg-muted"
-                >
-                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                </button>
-              </div>
-            </div>
-            {registering && (
+            <div className={registering ? "grid gap-4 sm:grid-cols-2" : ""}>
               <div>
-                <label htmlFor="confirmPassword" className="text-xs font-medium">
-                  Confirmar senha
-                </label>
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
-                  required
-                  maxLength={128}
-                  minLength={8}
-                  placeholder="Repita sua senha"
-                  className={field}
-                />
+                <div className="flex items-center justify-between gap-3">
+                  <label htmlFor="password" className="text-xs font-medium">
+                    Senha
+                  </label>
+                  {!registering && (
+                    <Link
+                      href="/esqueci-senha"
+                      className="text-[11px] font-medium text-muted-foreground underline-offset-4 hover:underline"
+                    >
+                      Esqueci minha senha
+                    </Link>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete={registering ? "new-password" : "current-password"}
+                    maxLength={128}
+                    minLength={registering ? 8 : 1}
+                    required
+                    placeholder={registering ? "Sua senha" : "Digite sua senha"}
+                    className={`${field} pr-12`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                    aria-pressed={showPassword}
+                    className="absolute right-1 top-3 rounded-lg p-2.5 text-muted-foreground hover:bg-muted"
+                  >
+                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
               </div>
-            )}
+              {registering && (
+                <div>
+                  <label htmlFor="confirmPassword" className="text-xs font-medium">
+                    Confirmar senha
+                  </label>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="new-password"
+                    required
+                    maxLength={128}
+                    minLength={8}
+                    placeholder="Repita a senha"
+                    className={field}
+                  />
+                </div>
+              )}
+            </div>
             {!registering && (
               <label className="flex items-center gap-2 text-xs text-muted-foreground">
                 <input
@@ -228,7 +228,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
             <ArrowRight className="size-4" />
           </button>
         </form>
-        <div className="my-5 flex items-center gap-3">
+        <div data-social-divider className="my-5 flex items-center gap-3">
           <span className="h-px flex-1 bg-border" />
           <span className="text-[10px] text-muted-foreground">ou continue com</span>
           <span className="h-px flex-1 bg-border" />
@@ -243,7 +243,7 @@ export function Login({ mode = "login" }: { mode?: "login" | "register" }) {
           onComplete={done}
           onChallengeUsed={resetChallenge}
         />
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p data-access-alternate className="mt-6 text-center text-xs text-muted-foreground">
           {registering ? "Já tem uma conta?" : "Ainda não tem uma conta?"}{" "}
           <Link
             href={registering ? "/login" : "/cadastro"}
