@@ -1,0 +1,147 @@
+.panel {
+  transform-origin: bottom right;
+  will-change: transform, opacity;
+}
+.panel[data-state="open"] {
+  animation: expand 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.panel[data-state="closed"] {
+  animation: collapse 190ms cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+.message {
+  animation: message-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.suggestion {
+  animation: message-in 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+.suggestion:hover {
+  transform: translateX(3px);
+}
+.suggestion:active {
+  transform: translateX(3px) scale(0.98);
+}
+.trigger {
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+.trigger:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px -8px rgb(0 0 0 / 35%);
+}
+.trigger:active {
+  transform: translateY(0) scale(0.96);
+}
+.icon {
+  animation: icon-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #a3a3a3;
+  animation: typing 1000ms ease-in-out infinite;
+}
+.dot:nth-child(2) {
+  animation-delay: 120ms;
+}
+.dot:nth-child(3) {
+  animation-delay: 240ms;
+}
+.send {
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background-color 160ms ease;
+}
+.send:not(:disabled):hover {
+  transform: translateY(-1px);
+  background: #f5a844;
+}
+.send:not(:disabled):active {
+  transform: scale(0.9);
+}
+@keyframes expand {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes collapse {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+}
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes icon-in {
+  from {
+    opacity: 0;
+    transform: rotate(-45deg) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .panel[data-state],
+  .message,
+  .suggestion,
+  .icon,
+  .dot {
+    animation: none;
+  }
+  .panel[data-state="closed"] {
+    opacity: 0;
+  }
+  .suggestion,
+  .trigger,
+  .send {
+    transition: none;
+  }
+  .suggestion:hover,
+  .suggestion:active,
+  .trigger:hover,
+  .trigger:active,
+  .send:not(:disabled):hover,
+  .send:not(:disabled):active {
+    transform: none;
+  }
+}

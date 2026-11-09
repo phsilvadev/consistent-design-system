@@ -5,6 +5,11 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
   "auth/challenge": ["GET"],
+  "auth/options": ["GET"],
+  "auth/google/start": ["POST"],
+  "auth/google/complete": ["POST"],
+  "auth/password/forgot": ["POST"],
+  "auth/password/reset": ["POST"],
   products: ["GET"],
   "integrations/gestaoclick/products-sync": ["GET"],
   "integrations/gestaoclick/products-sync/start": ["POST"],
@@ -71,8 +76,14 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
     if (value) headers.set(name, value);
   }
   const cookie = request.cookies.get(SESSION_COOKIE)?.value;
+  const cookiesToForward: string[] = [];
   if (cookie && /^[A-Za-z0-9_-]{20,200}$/.test(cookie))
-    headers.set("Cookie", `${SESSION_COOKIE}=${cookie}`);
+    cookiesToForward.push(`${SESSION_COOKIE}=${cookie}`);
+  const googleFlow = request.cookies.get("atendehub_google_flow")?.value;
+  if (joined.startsWith("auth/google/") && googleFlow && /^[A-Za-z0-9_-]{40,100}$/.test(googleFlow))
+    cookiesToForward.push(`atendehub_google_flow=${googleFlow}`);
+  if (cookiesToForward.length) headers.set("Cookie", cookiesToForward.join("; "));
+
   try {
     let body: string | undefined;
     if (request.method !== "GET") {

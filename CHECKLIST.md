@@ -461,3 +461,13 @@ Validação: 115 Vitest, build/TypeScript, ESLint dos arquivos alterados e 2 E2E
 Validação da Central de Ajuda: 115 Vitest, build/TypeScript e 6 cenários E2E relevantes aprovados (ajuda revalidada após correção da contagem esperada de busca). Busca sem acento, categorias, perguntas, abertura do chat, acesso mobile e isolamento/recusa anônima verificados. Publicação solicitada em andamento; chat segue com respostas de exemplo, sem OpenAI.
 
 Publicação autorizada concluída em 06/11/2026: frontend d138042 e API ceb83dc enviados a origin/development. Railway cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 e API cc810a36-086a-4c3d-ac42-80c652d8fbb5 em SUCCESS. Login 200, ajuda sem sessão 307, BFF Meta sem sessão 401 e readiness PostgreSQL/migrations 200. Trello atualizado: central de ajuda concluída; Meta real bloqueada por App ID/App Secret/Config ID ausentes e IA de suporte em A fazer. Esta publicação sucede a restrição anterior de manter a prévia local, conforme nova autorização expressa do usuário.
+
+### Movimento no chat de suporte
+- [x] Suavizar abertura/fechamento, mensagens, sugestões e indicador de resposta; respeitar movimento reduzido; validar no navegador e registrar prévia local.
+
+Validação em 09/11/2026: build, TypeScript, ESLint e 2 E2E aprovados. Testados indicador de resposta, preservação do histórico, fechamento inerte, reabertura durante saída, Escape/foco e prefers-reduced-motion. Prints desktop/mobile e vídeo/GIF gerados com empresa fictícia em SQLite temporário. Chat continua com respostas demonstrativas; nenhuma chamada OpenAI. Alteração local, sem push ou deploy.
+
+### Auth cliente: layout, Google e recuperação
+- [x] Aplicar layout de referência em login/cadastro, entrada Google server-side e páginas de esqueci/redefinir senha; testar e gerar prints.
+
+Validação local: 115 Vitest, build/TypeScript e E2E Next/BFF/API/SQLite aprovado para cadastro Google com trial de 7 dias, login no tenant correto, recuperação por e-mail simulado e nova senha funcional. Prints login/cadastro/recuperação/redefinição e mobile gerados. SDK/verificação Google e transporte SMTP simulados somente no runner isolado; Google/SMTP reais ainda dependem de configuração. Publicação solicitada em 09/11/2026, em preparação.

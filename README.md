@@ -218,3 +218,9 @@ Publicado em https://cliente-production-a80d.up.railway.app/login. Deploy direto
 Acesse o item no rodapé do menu lateral ou no menu do perfil. A rota autenticada `/{empresa}/ajuda` oferece busca sem acentos, categorias e perguntas frequentes. O botão da página abre o mesmo chat flutuante disponível no painel. Nesta entrega o chat responde com exemplos locais, claramente identificados; não há integração OpenAI ou abertura de chamado humano. A faixa secundária de empresa/dados demonstrativos foi removida; trial e menu da conta permanecem.
 
 O painel WhatsApp oficial inclui Conectar com a Meta (Cadastro Incorporado) e alternativa manual recolhida. O backend precisa de configuração real de App ID/App Secret/Config ID; consulte `docs/WHATSAPP_EMBEDDED_SIGNUP.md` no repositório backend. Nunca configurar App Secret em variáveis públicas Next.
+
+### Acesso do cliente
+
+Login e cadastro usam uma moldura arredondada com painel visual e preservam a paleta atual. O login oferece o link `/esqueci-senha` e a página `/redefinir-senha` trata o token de recuperação somente em memória. Google Identity Services é usado para login/cadastro; sem `GOOGLE_AUTH_CLIENT_ID` no backend, a interface informa que a configuração está pendente. Recuperação requer origem pública e SMTP STARTTLS configurados no backend. Os campos e a verificação Turnstile do acesso por e-mail permanecem.
+
+Credenciais de Google/SMTP, regras de vínculo e segurança estão em `docs/CLIENT_AUTH.md` do repositório backend. A etapa local usa SDK Google/SMTP simulados apenas nos testes; uso com conta Google real e entrega real de e-mail ainda precisam de configuração e validação.

@@ -25,6 +25,8 @@ with tempfile.TemporaryDirectory(prefix='atendehub-tenant-tests-') as directory:
             command=[str(python),str(root/'scripts/e2e-gestaoclick-api.py')]
         if os.environ.get('E2E_META_STUB')=='1':
             command=[str(python),str(root/'scripts/e2e-meta-api.py')]
+        if os.environ.get('E2E_CLIENT_ACCESS_STUB')=='1':
+            command=[str(python),str(root/'scripts/e2e-client-access-api.py')]
         subprocess.run(command,cwd=source,env=env,check=True)
     finally:
         metadata.unlink(missing_ok=True)

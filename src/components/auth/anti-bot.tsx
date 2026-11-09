@@ -45,7 +45,7 @@ export function AntiBotChallenge({
   resetKey,
   onState,
 }: {
-  action: "client_login" | "client_register" | "platform_login";
+  action: "client_login" | "client_register" | "platform_login" | "client_password_reset";
   configPath: string;
   resetKey: number;
   onState: (state: AntiBotState) => void;

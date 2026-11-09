@@ -5,6 +5,8 @@ import { SESSION_COOKIE, belongsToTenant } from "@/lib/auth/contracts";
 const publicPages = new Set([
   "/login",
   "/cadastro",
+  "/esqueci-senha",
+  "/redefinir-senha",
   "/acesso-negado",
   "/servico-indisponivel",
   "/favicon.ico",
