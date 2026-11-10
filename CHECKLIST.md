@@ -491,3 +491,6 @@ Publicação em 10/11/2026: push development concluído nos três repositórios 
 
 ### Suporte conectado à OpenAI
 - [x] Integrar histórico persistido, resposta da API, estado de preparação, referências, falhas e limite de envios ao widget. Removidas respostas demonstrativas. 119 Vitest, build/TypeScript/lint e 3 E2E com API/SQLite reais aprovados; fronteira OpenAI simulada sem cobrança. Prints desktop/mobile gerados.
+
+
+Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/development. Railway API cc895818-95ee-45f3-9b8d-eec5b96fe78c e cliente 2f583e23-4891-4cb6-88cc-97ac31f568bb em SUCCESS. Readiness e login200; suporte sem sessão401. Testes193 Pytest/119 Vitest/3 E2E com fronteira OpenAI simulada. Geração real pelo widget fica em validação com conta autorizada, sem inserção de registros fictícios em produção. Trello movido para Validação.
