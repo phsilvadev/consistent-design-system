@@ -485,3 +485,6 @@ Publicação final em 09/11/2026: cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9, 
 
 ### Indicadores da central no Dashboard — 10/11/2026
 - [x] Remover os quatro cards da central e adicioná-los ao Dashboard (ausentes anteriormente), com dados reais de /conversations/summary, skeletons, retry e atualização automática sem chamadas sobrepostas. Filtros e contador do botão Não lidos preservados. Build/TypeScript, lint, 6 testes relevantes e E2E de duas sessões/leitura individual aprovados. Prints gerados. Alteração local, sem push/publicação.
+
+
+Publicação em 10/11/2026: push development concluído nos três repositórios (API 6c609a1, cliente 3af6530, superadmin 9b49a06). Railway API 44c36254-c40c-44dc-8602-3da17b50484b, cliente c7ca8ff9-1a45-486a-9fc9-2643cf3a7635 e superadmin 5cf06c23-ce22-4086-a848-3d816a7e820f em SUCCESS. Readiness API e logins dos frontends HTTP200; configuração sem sessão401. Chave mestra de armazenamento configurada no ambiente protegido do backend, sem expor valor. Chave OpenAI real e validação externa pendentes de cadastro pelo formulário. Incluídos histórico lateral de importações e indicadores da central no Dashboard.
