@@ -591,28 +591,6 @@ export function AtendimentoScreen() {
       <div role="status" aria-live="polite" className="sr-only">
         {announcement}
       </div>
-      <section aria-label="Resumo da central" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          { label: "Em andamento", value: summary?.active },
-          { label: "Sem responsável", value: summary?.unassigned },
-          { label: "Com registros não lidos", value: summary?.unread_conversations },
-          { label: "Registros não lidos", value: summary?.unread_messages },
-        ].map((metric) => (
-          <div key={metric.label} className="rounded-2xl border bg-card px-5 py-4">
-            <p className="text-xs text-muted-foreground">{metric.label}</p>
-            {metric.value === undefined ? (
-              <Skeleton className="mt-2 h-7 w-12" />
-            ) : (
-              <p
-                className="mt-2 text-2xl font-semibold"
-                aria-label={`${metric.label}: ${metric.value}`}
-              >
-                {metric.value}
-              </p>
-            )}
-          </div>
-        ))}
-      </section>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <p role="status">{syncError || "Atualização automática a cada 5 segundos"}</p>
         {lastSync && (

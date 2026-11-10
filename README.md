@@ -226,3 +226,6 @@ Login e cadastro usam uma moldura arredondada com painel visual e preservam a pa
 Credenciais de Google/SMTP, regras de vínculo e segurança estão em `docs/CLIENT_AUTH.md` do repositório backend. A etapa local usa SDK Google/SMTP simulados apenas nos testes; uso com conta Google real e entrega real de e-mail ainda precisam de configuração e validação.
 
 As telas públicas de acesso ocupam toda a janela, sem fundo externo escuro, padding externo ou limite de largura. Publicado com cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9 e API 818ef177-a268-4964-aab4-75e14f658502 (SUCCESS). Google/recuperação aguardam Client ID e SMTP reais; Turnstile de produção preservado.
+
+### Indicadores da central no Dashboard
+Os quatro cards Em andamento, Sem responsável, Com registros não lidos e Registros não lidos foram movidos de Atendimentos para o Dashboard. Eles usam `/conversations/summary`, validam a empresa da resposta e refletem o acesso do usuário, com skeleton/erro/retry e atualização a cada cinco segundos em primeiro plano. São contadores da situação atual, sem filtro diário. Os filtros e o botão Não lidos continuam na central. Os demais indicadores/gráficos demonstrativos do Dashboard não foram convertidos nesta alteração. Validado com API/SQLite temporários e E2E de duas sessões, sem Docker.

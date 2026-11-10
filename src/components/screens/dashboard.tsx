@@ -1,5 +1,6 @@
 "use client";
 
+import { ConversationOverview } from "@/components/atendimentos/conversation-overview";
 import { ProfileMenu } from "@/components/auth/profile-menu";
 import { TrialBanner } from "@/components/auth/trial-banner";
 import { PlanSettings } from "@/components/settings/plan-settings";
@@ -494,6 +495,8 @@ export function Dashboard({
                 </div>
               ))}
             </section>
+
+            <ConversationOverview />
 
             <section className="grid gap-6 xl:grid-cols-2">
               <Panel eyebrow="Atendimentos" title="Atendimentos por status">

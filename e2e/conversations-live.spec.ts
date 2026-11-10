@@ -87,7 +87,7 @@ test("Central sincroniza duas sessões, preserva rascunho e mantém leitura indi
   });
   const employee = await employeeContext.newPage();
   await employee.goto(`/${identity.company.id}/atendimentos`);
-  await expect(employee.getByLabel("Com registros não lidos: 2", { exact: true })).toBeVisible();
+  await expect(employee.getByRole("button", { name: "Não lidos (2)", exact: true })).toBeVisible();
   const card = employee.getByRole("button", { name: /Abrir atendimento de Carlos Mendes/ });
   await expect(card.getByLabel("2 registros não lidos", { exact: true })).toBeVisible();
   await employee.getByRole("heading", { name: "Atendimentos", exact: true }).click();
@@ -122,7 +122,7 @@ test("Central sincroniza duas sessões, preserva rascunho e mantém leitura indi
     (await (await context.request.get(`/api/v1/conversations/${conversation.id}`)).json())
       .unread_count,
   ).toBe(1);
-  await expect(employee.getByLabel("Com registros não lidos: 1", { exact: true })).toBeVisible({
+  await expect(employee.locator("button").filter({ hasText: /^Não lidos \(1\)$/ })).toBeVisible({
     timeout: 15000,
   });
   await expect(panel.getByText("Primeira resposta manual:", { exact: false })).toBeVisible();
@@ -168,6 +168,13 @@ test("Central sincroniza duas sessões, preserva rascunho e mantém leitura indi
     ).status(),
   ).toBe(404);
   await employeeContext.close();
-  await page.goto(`/${identity.company.id}/atendimentos`);
+  await page.goto(`/${identity.company.id}`);
   await expect(page.getByLabel("Registros não lidos: 1", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Resumo da central" })).toBeVisible();
+  await page.waitForTimeout(1800); // Aguarda a animação dos gráficos para o print.
+  await page.screenshot({ path: "/workspace/dashboard-indicadores-central.png", fullPage: true });
+  await page.goto(`/${identity.company.id}/atendimentos`);
+  await expect(page.getByRole("heading", { name: "Atendimentos", exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Resumo da central" })).toHaveCount(0);
+  await page.screenshot({ path: "/workspace/atendimentos-sem-indicadores.png", fullPage: true });
 });

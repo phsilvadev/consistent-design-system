@@ -482,3 +482,6 @@ Publicação final em 09/11/2026: cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9, 
 
 ### Moldura branca e altura responsiva
 - [x] Recuar somente painel colorido em 8px sobre fundo branco; adaptar alturas/espaçamentos a notebook e manter campos/Turnstile acessíveis. Build, TypeScript e E2E responsivo aprovados: notebook 1366x768, login 1366x650, desktop 1920x1080 e mobile 390x844. Turnstile representado por widget de 65px no teste de geometria, sem envio de autenticação.
+
+### Indicadores da central no Dashboard — 10/11/2026
+- [x] Remover os quatro cards da central e adicioná-los ao Dashboard (ausentes anteriormente), com dados reais de /conversations/summary, skeletons, retry e atualização automática sem chamadas sobrepostas. Filtros e contador do botão Não lidos preservados. Build/TypeScript, lint, 6 testes relevantes e E2E de duas sessões/leitura individual aprovados. Prints gerados. Alteração local, sem push/publicação.
