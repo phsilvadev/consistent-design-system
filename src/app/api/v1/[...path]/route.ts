@@ -4,6 +4,7 @@ import { SESSION_COOKIE } from "@/lib/auth/contracts";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const allowed: Record<string, string[]> = {
+  "support/messages": ["GET", "POST"],
   "auth/challenge": ["GET"],
   "auth/options": ["GET"],
   "auth/google/start": ["POST"],
@@ -114,7 +115,9 @@ async function forward(request: NextRequest, { params }: { params: Promise<{ pat
         cache: "no-store",
         redirect: "error",
         signal: AbortSignal.timeout(
-          joined === "integrations/whatsapp-official/embedded/complete" ? 30000 : 15000,
+          ["integrations/whatsapp-official/embedded/complete", "support/messages"].includes(joined)
+            ? 30000
+            : 15000,
         ),
         ...(body === undefined ? {} : { body }),
       },

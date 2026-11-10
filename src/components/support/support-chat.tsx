@@ -4,17 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import styles from "./support-chat.module.css";
 import { ArrowUp, Headphones, MessageCircle, Minus, X } from "lucide-react";
 
-type Message = { author: "assistant" | "user"; text: string };
+import { useTenant } from "@/lib/tenant/provider";
+import { supportApi, type SupportTurn, type SupportHistory } from "@/lib/auth/support";
+import { ApiError } from "@/lib/auth/client";
 const suggestions = ["Conectar meu WhatsApp", "Importar produtos", "Gerenciar minha equipe"];
-function previewReply(text: string) {
-  if (/whats|qr|conect/i.test(text))
-    return "Para conectar seu WhatsApp, abra Integrações e escolha o canal. Na opção por QR Code, clique em Conectar e depois em Gerar QR Code. No celular, acesse Dispositivos conectados para fazer a leitura.";
-  if (/produt|erp|gestão|gestao|import/i.test(text))
-    return "Em Integrações, abra o GestãoClick ERP para configurar o acesso. Depois, use a sincronização de produtos. O catálogo fica disponível na página Produtos.";
-  if (/equipe|usuári|usuari|vendedor/i.test(text))
-    return "Abra Configurações → Equipe. Administradores podem cadastrar usuários e editar os acessos. Cada pessoa deve ter sua própria conta.";
-  return "Posso ajudar com WhatsApp, produtos e acessos da equipe. Esta é uma prévia do chat: as respostas são exemplos e a IA ainda não está conectada.";
-}
 export function openSupportChat() {
   window.dispatchEvent(new Event("atendehub:open-support"));
 }
@@ -22,10 +15,18 @@ export function openSupportChat() {
 export function SupportChat() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { tenant, user, href } = useTenant();
   const [typing, setTyping] = useState(false);
-  const replyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [data, setData] = useState<SupportHistory | null>(null);
+  const [retry, setRetry] = useState(0);
+  const sending = useRef(false);
+  const attempt = useRef<{ id: string; text: string } | null>(null);
+  const generation = useRef(0);
   const [draft, setDraft] = useState("");
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [optimistic, setOptimistic] = useState<string | null>(null);
+  const [messages, setMessages] = useState<SupportTurn[]>([]);
   useEffect(() => {
     const show = () => setOpen(true);
     window.addEventListener("atendehub:open-support", show);
@@ -43,14 +44,61 @@ export function SupportChat() {
     return () => clearTimeout(timer);
   }, [open]);
   useEffect(() => {
-    if (open && mounted) input.current?.focus();
-  }, [open, mounted]);
-  useEffect(
-    () => () => {
-      if (replyTimer.current) clearTimeout(replyTimer.current);
-    },
-    [],
-  );
+    if (open && mounted && !loading) input.current?.focus();
+  }, [open, mounted, loading]);
+  useEffect(() => {
+    generation.current += 1;
+    setMessages([]);
+    setOptimistic(null);
+    setData(null);
+    setDraft("");
+    setError("");
+    setTyping(false);
+    sending.current = false;
+    attempt.current = null;
+    return () => {
+      generation.current += 1;
+    };
+  }, [tenant.id, user.id]);
+  useEffect(() => {
+    if (!open) return;
+    let alive = true;
+    const current = generation.current;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    async function load() {
+      try {
+        const value = await supportApi.history(tenant.id, user.id);
+        if (!alive || current !== generation.current) return;
+        if (!sending.current) {
+          setData(value);
+          setMessages(value.items);
+          const recovered =
+            attempt.current && value.items.find((item) => item.request_id === attempt.current?.id);
+          if (recovered) {
+            const original = attempt.current!.text;
+            attempt.current = null;
+            setDraft((current) => (current === original ? "" : current));
+          }
+          if (!attempt.current) setError("");
+        }
+        if (value.items.some((item) => item.status === "processing"))
+          timer = setTimeout(() => void load(), 2000);
+      } catch (e) {
+        if (alive && current === generation.current) {
+          setError(e instanceof Error ? e.message : "Não foi possível carregar o suporte.");
+          if (e instanceof ApiError && e.status === 401) window.location.replace("/login");
+        }
+      } finally {
+        if (alive && current === generation.current) setLoading(false);
+      }
+    }
+    setLoading(true);
+    void load();
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [open, tenant.id, user.id, retry]);
   useEffect(() => {
     history.current?.scrollTo({
       top: history.current.scrollHeight,
@@ -63,20 +111,47 @@ export function SupportChat() {
     setOpen(false);
     trigger.current?.focus();
   }
-  function send(text: string) {
+  async function send(text: string, replay = false) {
     const clean = text.trim().slice(0, 1000);
-    if (!clean || replyTimer.current) return;
-    setMessages((items) => [...items, { author: "user", text: clean }]);
-    setDraft("");
+    if (!clean || sending.current || messages.some((item) => item.status === "processing")) return;
+    const current = generation.current;
+    const request =
+      replay && attempt.current ? attempt.current : { id: crypto.randomUUID(), text: clean };
+    attempt.current = request;
+    sending.current = true;
     setTyping(true);
-    // Visual preview only; this delay does not call an AI service.
-    replyTimer.current = setTimeout(() => {
-      setMessages((items) => [...items, { author: "assistant", text: previewReply(clean) }]);
-      setTyping(false);
-      replyTimer.current = null;
-    }, 850);
-    input.current?.focus();
+    setOptimistic(request.text);
+    setError("");
+    setDraft("");
+    try {
+      const result = await supportApi.send(request.id, request.text);
+      if (current !== generation.current) return;
+      setMessages((items) =>
+        [...items.filter((item) => item.request_id !== result.request_id), result].slice(-20),
+      );
+      attempt.current = null;
+      if (result.status === "failed") setDraft(request.text);
+    } catch (e) {
+      if (current === generation.current) {
+        setError(e instanceof Error ? e.message : "Não foi possível enviar a mensagem.");
+        setDraft(request.text);
+        if (e instanceof ApiError && e.status === 401) window.location.replace("/login");
+      }
+    } finally {
+      if (current === generation.current) {
+        sending.current = false;
+        setTyping(false);
+        setOptimistic(null);
+        setRetry((v) => v + 1);
+      }
+      input.current?.focus();
+    }
   }
+  const currentData = data?.company_id === tenant.id && data?.user_id === user.id ? data : null;
+  const visibleMessages = currentData ? messages : [];
+  const pending =
+    !!currentData && (typing || visibleMessages.some((item) => item.status === "processing"));
+  const available = currentData?.available ?? false;
   return (
     <div className="fixed bottom-4 right-4 z-40 font-sans sm:bottom-6 sm:right-6">
       {mounted && (
@@ -99,7 +174,7 @@ export function SupportChat() {
             </span>
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold">Suporte AtendeHub</h2>
-              <p className="mt-1 text-xs text-neutral-300">Assistente virtual · prévia</p>
+              <p className="mt-1 text-xs text-neutral-300">Assistente virtual · IA</p>
             </div>
             <button
               type="button"
@@ -136,13 +211,13 @@ export function SupportChat() {
                 </p>
               </div>
             </div>
-            {messages.length === 0 && (
+            {!loading && available && visibleMessages.length === 0 && (
               <div className="flex flex-col items-start gap-2">
                 {suggestions.map((text, index) => (
                   <button
                     type="button"
                     key={text}
-                    onClick={() => send(text)}
+                    onClick={() => void send(text)}
                     style={{ animationDelay: `${90 + index * 55}ms` }}
                     className={`${styles["suggestion"]} rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-left text-xs font-medium hover:border-[#fb982b] hover:bg-orange-50`}
                   >
@@ -154,19 +229,82 @@ export function SupportChat() {
                 ))}
               </div>
             )}
-            {messages.map((message, i) => (
-              <div
-                key={i}
-                className={`${styles["message"]} flex ${message.author === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <p
-                  className={`max-w-[92%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed ${message.author === "user" ? "rounded-br-sm bg-[#202329] text-white" : "rounded-tl-sm border border-neutral-200/70 bg-white text-neutral-700"}`}
-                >
-                  {message.text}
-                </p>
+            {visibleMessages.map((turn) => (
+              <div key={turn.id} className="space-y-3">
+                <div className={`${styles["message"]} flex justify-end`}>
+                  <p className="max-w-[92%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm bg-[#202329] px-4 py-3 text-sm leading-relaxed text-white">
+                    {turn.message}
+                  </p>
+                </div>
+                {turn.status === "complete" && (
+                  <div
+                    className={`${styles["message"]} rounded-2xl rounded-tl-sm border border-neutral-200/70 bg-white p-4 text-sm leading-relaxed text-neutral-700`}
+                  >
+                    <p className="whitespace-pre-wrap break-words">{turn.answer}</p>
+                    {turn.sources.length > 0 && (
+                      <div className="mt-3 border-t border-neutral-100 pt-2">
+                        <p className="text-[10px] font-medium text-neutral-400">
+                          Referências da ajuda
+                        </p>
+                        {turn.sources.map((source) => (
+                          <a
+                            key={source.id}
+                            href={href("/ajuda")}
+                            className="mt-1 block text-xs underline underline-offset-2"
+                          >
+                            {source.title}
+                          </a>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {turn.status === "failed" && (
+                  <p className="rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600">
+                    {turn.error}
+                  </p>
+                )}
               </div>
             ))}
-            {typing && (
+            {currentData && optimistic && (
+              <div className="flex justify-end">
+                <p className="max-w-[92%] whitespace-pre-wrap break-words rounded-2xl rounded-br-sm bg-[#202329] px-4 py-3 text-sm leading-relaxed text-white">
+                  {optimistic}
+                </p>
+              </div>
+            )}
+            {loading && (
+              <p role="status" className="text-xs text-neutral-500">
+                Carregando histórico…
+              </p>
+            )}
+            {!loading && currentData && !available && (
+              <p
+                role="status"
+                className="rounded-xl border border-neutral-200 bg-white p-3 text-xs text-neutral-600"
+              >
+                O suporte com IA está indisponível no momento. Consulte a Central de ajuda.
+              </p>
+            )}
+            {error && (
+              <div
+                role="alert"
+                className="space-y-2 rounded-xl border border-neutral-300 bg-white p-3 text-xs"
+              >
+                <p>{error}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (attempt.current) void send(attempt.current.text, true);
+                    else setRetry((v) => v + 1);
+                  }}
+                  className="font-medium underline"
+                >
+                  {attempt.current ? "Consultar ou repetir envio" : "Atualizar histórico"}
+                </button>
+              </div>
+            )}
+            {pending && (
               <div
                 className={`${styles["message"]} flex items-center gap-2`}
                 role="status"
@@ -188,7 +326,7 @@ export function SupportChat() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                send(draft);
+                void send(draft);
               }}
               className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 focus-within:border-neutral-400"
             >
@@ -197,21 +335,39 @@ export function SupportChat() {
                 aria-label="Sua mensagem para o suporte"
                 placeholder="Escreva sua dúvida…"
                 maxLength={1000}
-                value={draft}
+                disabled={
+                  loading ||
+                  !available ||
+                  pending ||
+                  (!!currentData && currentData.used_today >= currentData.daily_limit)
+                }
+                value={currentData ? draft : ""}
                 onChange={(e) => setDraft(e.target.value)}
                 className="min-w-0 flex-1 bg-transparent px-2 text-sm outline-none"
               />
               <button
                 type="submit"
                 aria-label="Enviar mensagem"
-                disabled={!draft.trim() || typing}
+                disabled={
+                  !draft.trim() ||
+                  pending ||
+                  loading ||
+                  !available ||
+                  (!!currentData && currentData.used_today >= currentData.daily_limit)
+                }
                 className={`${styles["send"]} flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#fb982b] text-neutral-950 disabled:opacity-35`}
               >
                 <ArrowUp className="h-4 w-4" />
               </button>
             </form>
+            {currentData && (
+              <p className="mt-2 text-center text-[10px] text-neutral-400">
+                {Math.max(0, currentData.daily_limit - currentData.used_today)} envios disponíveis
+                hoje · histórico por {currentData.retention_days} dias
+              </p>
+            )}
             <p className="mt-3 text-center text-[10px] text-neutral-400">
-              Prévia visual · respostas de exemplo, sem IA conectada
+              Não envie senhas, chaves ou dados pessoais.
             </p>
           </footer>
         </section>

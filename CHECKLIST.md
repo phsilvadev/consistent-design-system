@@ -488,3 +488,6 @@ Publicação final em 09/11/2026: cliente 20f74147-d5b1-4e44-a2db-9badcaa650b9, 
 
 
 Publicação em 10/11/2026: push development concluído nos três repositórios (API 6c609a1, cliente 3af6530, superadmin 9b49a06). Railway API 44c36254-c40c-44dc-8602-3da17b50484b, cliente c7ca8ff9-1a45-486a-9fc9-2643cf3a7635 e superadmin 5cf06c23-ce22-4086-a848-3d816a7e820f em SUCCESS. Readiness API e logins dos frontends HTTP200; configuração sem sessão401. Chave mestra de armazenamento configurada no ambiente protegido do backend, sem expor valor. Chave OpenAI real e validação externa pendentes de cadastro pelo formulário. Incluídos histórico lateral de importações e indicadores da central no Dashboard.
+
+### Suporte conectado à OpenAI
+- [x] Integrar histórico persistido, resposta da API, estado de preparação, referências, falhas e limite de envios ao widget. Removidas respostas demonstrativas. 119 Vitest, build/TypeScript/lint e 3 E2E com API/SQLite reais aprovados; fronteira OpenAI simulada sem cobrança. Prints desktop/mobile gerados.

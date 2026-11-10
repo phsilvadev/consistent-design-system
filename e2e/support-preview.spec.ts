@@ -1,8 +1,5 @@
 import { test, expect } from "@playwright/test";
-test("prévia local de suporte abre, responde e recolhe sem backend de IA", async ({
-  page,
-  context,
-}) => {
+test("suporte abre, responde via API e preserva histórico", async ({ page, context }) => {
   const response = await context.request.post("/api/v1/auth/register", {
     headers: { Origin: "http://127.0.0.1:3200" },
     data: {
@@ -30,7 +27,7 @@ test("prévia local de suporte abre, responde e recolhe sem backend de IA", asyn
   await expect(chat.getByRole("log")).toContainText("Dispositivos conectados");
   await chat.getByRole("textbox").fill("Olá, preciso de ajuda");
   await chat.getByRole("button", { name: "Enviar mensagem", exact: true }).click();
-  await expect(chat.getByRole("log")).toContainText("a IA ainda não está conectada");
+  await expect(chat.getByRole("log")).toContainText("Não encontrei uma orientação aprovada");
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(chat).toBeVisible();
   const bounds = await chat.boundingBox();
