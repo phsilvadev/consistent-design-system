@@ -143,15 +143,18 @@ export function PlanSettings() {
           Acompanhe seu acesso e conheça as opções para sua empresa.
         </p>
       </div>
-      <section aria-label="Plano atual" className="overflow-hidden rounded-2xl border bg-card">
-        <div className="flex flex-wrap items-center justify-between gap-5 p-6">
+      <section
+        aria-label="Plano atual"
+        className="overflow-hidden rounded-3xl border bg-card p-5 shadow-sm sm:p-6"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <CreditCard className="h-6 w-6" />
             </span>
             <div>
               <p className="text-xs text-muted-foreground">Plano atual de {tenant.name}</p>
-              <h3 className="mt-1 text-xl font-semibold">{subscription.plan_name}</h3>
+              <h3 className="mt-1 text-lg font-semibold">{subscription.plan_name}</h3>
               {subscription.current_plan && (
                 <p className="mt-1 text-xs text-muted-foreground">
                   {planPrice(subscription.current_plan)} /mês · até{" "}
@@ -161,16 +164,16 @@ export function PlanSettings() {
             </div>
           </div>
           <span
-            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${expired ? "bg-destructive/10 text-destructive" : "bg-emerald-50 text-emerald-700"}`}
+            className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium ${expired ? "bg-destructive/10 text-destructive" : trial ? "bg-[#f0e6e0] text-foreground" : "bg-emerald-50 text-emerald-700"}`}
           >
             <span
-              className={`h-1.5 w-1.5 rounded-full ${expired ? "bg-destructive" : "bg-emerald-500"}`}
+              className={`h-1.5 w-1.5 rounded-full ${expired ? "bg-destructive" : trial ? "bg-[#9a5135]" : "bg-emerald-500"}`}
             />
             {expired ? "Teste encerrado" : trial ? "Teste em andamento" : "Ativo"}
           </span>
         </div>
-        <div className="grid divide-y border-t sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          <div className="p-5">
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-[20px] border p-4">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5" />
               {trial ? "Início do teste" : "Assinatura"}
@@ -181,7 +184,7 @@ export function PlanSettings() {
                 : "Plano da empresa"}
             </p>
           </div>
-          <div className="p-5">
+          <div className="rounded-[20px] border p-4">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <Clock3 className="h-3.5 w-3.5" />
               {trial ? "Fim do teste" : "Próxima cobrança"}
@@ -192,7 +195,7 @@ export function PlanSettings() {
                 : "Não informada"}
             </p>
           </div>
-          <div className="p-5">
+          <div className="rounded-[20px] border p-4">
             <p className="flex items-center gap-2 text-xs text-muted-foreground">
               <Users className="h-3.5 w-3.5" />
               Usuários da empresa
@@ -207,14 +210,14 @@ export function PlanSettings() {
           </div>
         </div>
         {trial && (
-          <div className="border-t bg-muted/20 p-5">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="mt-5 rounded-[20px] bg-[#f7f6f5] p-4 text-foreground">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm">
               <span className="font-medium">
                 {expired
                   ? "Seu período de avaliação terminou."
                   : `${subscription.trial_days_remaining} ${subscription.trial_days_remaining === 1 ? "dia restante" : "dias restantes"} para conhecer a plataforma`}
               </span>
-              <span className="text-muted-foreground">Sem cobrança automática</span>
+              <span className="text-xs text-muted-foreground">Sem cobrança automática</span>
             </div>
             <div
               role="progressbar"
@@ -224,7 +227,10 @@ export function PlanSettings() {
               aria-valuemax={100}
               className="h-1.5 overflow-hidden rounded-full bg-muted"
             >
-              <div className="h-full rounded-full bg-primary" style={{ width: `${remaining}%` }} />
+              <div
+                className="h-full rounded-full bg-[#ed7514]"
+                style={{ width: `${remaining}%` }}
+              />
             </div>
           </div>
         )}

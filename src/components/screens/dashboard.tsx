@@ -459,7 +459,7 @@ export function Dashboard({
           </main>
         ) : (
           <main className="space-y-6 p-4 md:p-8">
-            <section className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-6">
+            <section className="hidden flex-wrap items-center justify-between gap-4 rounded-2xl border bg-card p-6">
               <div>
                 <p className="eyebrow text-primary">Visão geral comercial</p>
                 <h1 className="display mt-2 text-2xl md:text-3xl">Olá, {user.name}!</h1>
@@ -496,7 +496,9 @@ export function Dashboard({
               ))}
             </section>
 
-            <ConversationOverview />
+            <div hidden>
+              <ConversationOverview />
+            </div>
 
             <section className="grid gap-6 xl:grid-cols-2">
               <Panel eyebrow="Atendimentos" title="Atendimentos por status">

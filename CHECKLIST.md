@@ -494,3 +494,9 @@ Publicação em 10/11/2026: push development concluído nos três repositórios 
 
 
 Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/development. Railway API cc895818-95ee-45f3-9b8d-eec5b96fe78c e cliente 2f583e23-4891-4cb6-88cc-97ac31f568bb em SUCCESS. Readiness e login200; suporte sem sessão401. Testes193 Pytest/119 Vitest/3 E2E com fronteira OpenAI simulada. Geração real pelo widget fica em validação com conta autorizada, sem inserção de registros fictícios em produção. Trello movido para Validação.
+
+### Dashboard — blocos ocultos (13/11/2026)
+- [x] Ocultar visualmente saudação/Novo atendimento e indicadores da Central de atendimentos, preservando os componentes e regras existentes. ESLint e TypeScript aprovados; conferência desktop em navegador com API/SQLite temporário e print dashboard-blocos-ocultos.png. Alteração local, sem push/deploy nesta etapa.
+
+### Card do plano — 13/11/2026
+- [x] Aplicar referência com cabeçalho, status discreto, três campos em cards e progresso em bloco arredondado. Datas, contagem de usuários e dias restantes continuam vindos da assinatura real. Build/TypeScript/ESLint aprovados e prints desktop/mobile com API/SQLite temporário; sem alterar cobrança.
