@@ -500,3 +500,5 @@ Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/deve
 
 ### Card do plano — 13/11/2026
 - [x] Aplicar referência com cabeçalho, status discreto, três campos em cards e progresso em bloco arredondado. Datas, contagem de usuários e dias restantes continuam vindos da assinatura real. Build/TypeScript/ESLint aprovados e prints desktop/mobile com API/SQLite temporário; sem alterar cobrança.
+
+Publicado em 13/11/2026: cliente 30faeec em origin/development; Railway 7f94050b-d2de-4e4f-a856-7cd0d5e34862 em SUCCESS, login HTTP200. Inclui card do plano e blocos ocultos da Dashboard.
